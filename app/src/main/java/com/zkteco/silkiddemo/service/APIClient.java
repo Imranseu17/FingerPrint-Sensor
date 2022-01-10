@@ -25,7 +25,9 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class APIClient {
-    public static String BASE_URL = "http://192.168.0.118/hrm-backend/fingerprintmanagement/";
+  //  public static String BASE_URL = "http://192.168.0.118/hrm-backend/fingerprintmanagement/";
+
+   public static String BASE_URL =  "http://192.168.0.118/api/";
 
     /**
      * This method creates a new instance of the API interface.

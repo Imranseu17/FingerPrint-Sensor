@@ -32,18 +32,23 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.databinding.DataBindingUtil;
 
+import com.google.android.gms.common.util.ArrayUtils;
+import com.zkteco.android.biometric.ZKSensorHelper;
 import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
+import com.zkteco.android.biometric.core.device.usb.ZKUSBHOSTAPIService;
 import com.zkteco.android.biometric.core.utils.LogHelper;
 import com.zkteco.android.biometric.core.utils.ToolUtils;
 import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureListener;
 import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor;
 import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory;
 import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
+import com.zkteco.android.biometric.module.fingerprintreader.ZKIDFprService;
 import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
 import com.zkteco.silkiddemo.Presenter.AttendencePresenter;
 import com.zkteco.silkiddemo.Presenter.IdentifyPresenter;
 import com.zkteco.silkiddemo.Presenter.InsertPresenter;
+import com.zkteco.silkiddemo.Presenter.TestPresenter;
 import com.zkteco.silkiddemo.R;
 import com.zkteco.silkiddemo.Utils.AttendenceStatus;
 import com.zkteco.silkiddemo.databinding.ActivityMainBinding;
@@ -53,6 +58,8 @@ import com.zkteco.silkiddemo.model.InsertModel;
 import com.zkteco.silkiddemo.view.AttendenceView;
 import com.zkteco.silkiddemo.view.IdentifyView;
 import com.zkteco.silkiddemo.view.InsertView;
+import com.zkteco.silkiddemo.view.TestView;
+import com.zkteco.zkfinger.ZKFingerLibSetting;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -63,6 +70,8 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -74,7 +83,7 @@ import okhttp3.ResponseBody;
 import www.sanju.motiontoast.MotionToast;
 import www.sanju.motiontoast.MotionToastStyle;
 
-public class MainActivity extends AppCompatActivity implements InsertView , IdentifyView , AttendenceView {
+public class MainActivity extends AppCompatActivity implements InsertView , IdentifyView , AttendenceView , TestView {
     private static final int VID = 6997;
     private static final int PID = 288;
     private TextView textView = null;
@@ -98,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
     InsertPresenter insertPresenter;
     IdentifyPresenter identifyPresenter;
     AttendencePresenter attendencePresenter;
+    TestPresenter testPresenter;
 
     String dateTime;
     String strBase64;
@@ -164,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
         insertPresenter = new InsertPresenter(this);
         identifyPresenter = new IdentifyPresenter(this);
         attendencePresenter = new AttendencePresenter(this);
+        testPresenter = new TestPresenter(this);
 
         Animation animFadeIn = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fade_in);
         imageView.startAnimation(animFadeIn);
@@ -371,10 +382,14 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
                                         
                                      //  int verifyID = ZKFingerService.verifyId(tmpBuffer,"9465968548");
 
-                                       if(checkConnection()){
-                                           insertPresenter.postApi(empID,verifyID,
-                                                   strBase64,Arrays.toString(regTemp),dateTime,deviceId,ipAddress);
-                                       }
+//                                       if(checkConnection()){
+//                                           insertPresenter.postApi(empID,verifyID,
+//                                                   strBase64,Arrays.toString(regTemp),dateTime,deviceId,ipAddress);
+//                                       }
+
+                                        if(checkConnection()){
+                                            testPresenter.insertApi(strBase64,Arrays.toString(regTemp));
+                                        }
 
                                         textView.setText("Enroll success, uid:" + uid +
                                                 "count:" + ZKFingerService.count());
@@ -388,10 +403,21 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
                             } else {
                                 byte[] bufids = new byte[256];
 
-                                if(checkConnection())
-                                    identifyPresenter.identifyAPI(Arrays.toString(tmpBuffer));
 
-                                int ret = ZKFingerService.identify(templateFromDB.getBytes(),tmpBuffer, threshold, 1);
+//                             byte[] finbufids =    ByteBuffer.allocate(tmpBuffer.length+bufids.length)
+//                                        .put(tmpBuffer).put(bufids).array();
+
+
+//                                if(checkConnection())
+//                                    identifyPresenter.identifyAPI(Arrays.toString(fpTemplate));
+
+                         //   int check =     ZKFingerService.verify(tmpBuffer,bufids);
+
+                                int scores = ZKFingerService.verify(tmpBuffer,regTemp);
+
+                                Toast.makeText(MainActivity.this,"Scores: "+scores,Toast.LENGTH_LONG).show();
+
+                                int ret = ZKFingerService.identify(tmpBuffer,bufids, threshold, 1);
 
                                String eID = edt_id.getText().toString();
                                String eName = edt_name.getText().toString();
@@ -440,9 +466,13 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
                                                     R.font.montserrat_regular));
                                     textView.setText("Identify fail");
                                 }
-                                //Base64 Template
-                                //String strBase64 = Base64.encodeToString
-                                // (tmpBuffer, 0, fingerprintSensor.getLastTempLen(), Base64.NO_WRAP);
+                             //   Base64 Template
+                                String strBase64T = Base64.encodeToString
+                                 (tmpBuffer, 0, fingerprintSensor.getLastTempLen(), Base64.NO_WRAP);
+
+                                if(checkConnection()){
+                                    testPresenter.insertApi(strBase64T,Arrays.toString(fpTemplate));
+                                }
                             }
                         }
                     });
@@ -531,6 +561,16 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
     public void onSuccess(AttendenceModel attendenceModel) {
         try {
             Toast.makeText(MainActivity.this,attendenceModel.getMessage(),Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this,"success",Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onSuccess(ResponseBody responseBody) {
+        try {
+            Toast.makeText(MainActivity.this,responseBody.string(),Toast.LENGTH_LONG).show();
             Toast.makeText(MainActivity.this,"success",Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();

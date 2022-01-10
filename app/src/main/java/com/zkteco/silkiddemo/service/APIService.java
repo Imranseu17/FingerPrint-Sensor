@@ -18,6 +18,9 @@ public interface APIService {
     @POST("insert")
     Call<InsertModel> post(@HeaderMap Map<String, String> headers, @Body JsonObject jsonObject);
 
+    @POST("api.php")
+    Call<ResponseBody> insert(@HeaderMap Map<String, String> headers, @Body JsonObject jsonObject);
+
     @POST("verify")
     Call<IdentifyModel> verify(@HeaderMap Map<String, String> headers, @Body JsonObject jsonObject);
 

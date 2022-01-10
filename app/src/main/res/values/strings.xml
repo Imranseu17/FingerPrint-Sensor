@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Scanner</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="enterFingerprintTitleText">Touch FingerPrint Scanner</string>
+    <string name="enterFingerprintMsgText">Please authenticate to process</string>
+    <string name="cancelText">Cancel</string>
+
+    <string name="go_Entry"><u>If you are no Entry Please go to Enrollment Page !</u>.</string>
+</resources>

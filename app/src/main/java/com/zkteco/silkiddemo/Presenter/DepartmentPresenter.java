@@ -2,15 +2,14 @@ package com.zkteco.silkiddemo.Presenter;
 
 import com.google.gson.JsonObject;
 import com.zkteco.silkiddemo.Utils.DebugLog;
+import com.zkteco.silkiddemo.Utils.DepartmentStatus;
 import com.zkteco.silkiddemo.Utils.ErrorCode;
-import com.zkteco.silkiddemo.Utils.IdentifyStatus;
-import com.zkteco.silkiddemo.Utils.InsertStatus;
 import com.zkteco.silkiddemo.error.APIErrors;
-import com.zkteco.silkiddemo.model.IdentifyModel;
-import com.zkteco.silkiddemo.model.InsertModel;
+import com.zkteco.silkiddemo.model.CompanyModel;
+import com.zkteco.silkiddemo.model.DepartmentModel;
 import com.zkteco.silkiddemo.service.APIClient;
-import com.zkteco.silkiddemo.view.IdentifyView;
-import com.zkteco.silkiddemo.view.InsertView;
+import com.zkteco.silkiddemo.view.DepartmentView;
+import com.zkteco.silkiddemo.view.TestView;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -23,12 +22,12 @@ import retrofit2.Callback;
 import retrofit2.HttpException;
 import retrofit2.Response;
 
-public class IdentifyPresenter {
+public class DepartmentPresenter {
 
-    private IdentifyView mViewInterface;
+    private DepartmentView mViewInterface;
     private APIClient mApiClient;
 
-    public IdentifyPresenter(IdentifyView view) {
+    public DepartmentPresenter(DepartmentView view) {
         this.mViewInterface = view;
 
         if (this.mApiClient == null) {
@@ -37,27 +36,31 @@ public class IdentifyPresenter {
     }
 
 
-    public void identifyAPI(String temp) {
+    public void departmentapi(
+            int company_id) {
 
         Map<String, String> map = new HashMap<>();
         map.put("Content-Type", "application/json");
 
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("template",temp);
+        jsonObject.addProperty("company_id", company_id);
+      
 
 
         mApiClient.getAPI()
-                .verify(map,jsonObject)
-                .enqueue(new Callback<IdentifyModel>() {
+                .getDepartments(map,jsonObject)
+                .enqueue(new Callback<DepartmentModel>() {
                     @Override
-                    public void onResponse(Call<IdentifyModel> call, Response<IdentifyModel> response) {
+                    public void onResponse(Call<DepartmentModel> call, Response<DepartmentModel> response) {
 
                         DebugLog.e(String.valueOf(response.code()));
 
+
+
                         if (response.isSuccessful()) {
-                            IdentifyModel identifyModel = response.body();
-                            if(identifyModel != null){
-                                mViewInterface.onSuccess(identifyModel);
+                            DepartmentModel departmentModel = response.body();
+                            if(departmentModel != null){
+                                mViewInterface.onSuccess(departmentModel);
                             }
                         } else getErrorMessage(response.code(), response.errorBody());
 
@@ -65,7 +68,7 @@ public class IdentifyPresenter {
                     }
 
                     @Override
-                    public void onFailure(Call<IdentifyModel> call, Throwable e) {
+                    public void onFailure(Call<DepartmentModel> call, Throwable e) {
                         e.printStackTrace();
                         if (e instanceof HttpException) {
                             int code = ((HttpException) e).response().code();
@@ -73,15 +76,14 @@ public class IdentifyPresenter {
                             getErrorMessage(code, responseBody);
 
                         } else if (e instanceof SocketTimeoutException) {
-                            mViewInterface.onError("Server connection error", IdentifyStatus.IDENTIFY_STATUS_ERROR.getCode());
+                            mViewInterface.onError("Server connection error", DepartmentStatus.DEPARTMENT_STATUS_ERROR.getCode());
                         } else if (e instanceof IOException) {
                             if (e.getMessage() != null)
-                                mViewInterface.onError(e.getMessage(),IdentifyStatus.SERVER_ERROR.getCode());
+                                mViewInterface.onError(e.getMessage(), DepartmentStatus.SERVER_ERROR.getCode());
                             else
-                                mViewInterface.onError("IO Exception",IdentifyStatus.SERVER_ERROR.getCode());
+                                mViewInterface.onError("IO Exception", DepartmentStatus.SERVER_ERROR.getCode());
                         } else {
-                            mViewInterface.onError("Unknown exception: "+e.getMessage(),IdentifyStatus.IDENTIFY_STATUS_ERROR.getCode());
-                            e.printStackTrace();
+                            mViewInterface.onError("Unknown exception", DepartmentStatus.DEPARTMENT_STATUS_ERROR.getCode());
                         }
                     }
                 });
@@ -94,21 +96,21 @@ public class IdentifyPresenter {
         if (errorCode != null) {
             switch (errorCode) {
                 case ERRORCODE500:
-                    mViewInterface.onError(APIErrors.get500ErrorMessage(responseBody),IdentifyStatus.ERROR_CODE_100.getCode());
+                    mViewInterface.onError(APIErrors.get500ErrorMessage(responseBody), DepartmentStatus.ERROR_CODE_100.getCode());
                     break;
                 case ERRORCODE400:
-                    mViewInterface.onError(APIErrors.get500ErrorMessage(responseBody),IdentifyStatus.ERROR_CODE_100.getCode());
+                    mViewInterface.onError(APIErrors.get500ErrorMessage(responseBody), DepartmentStatus.ERROR_CODE_100.getCode());
                     break;
                 case ERRORCODE406:
-                    mViewInterface.onError(APIErrors.get406ErrorMessage(responseBody),IdentifyStatus.ERROR_CODE_406.getCode());
+                    mViewInterface.onError(APIErrors.get406ErrorMessage(responseBody), DepartmentStatus.ERROR_CODE_406.getCode());
                     break;
 
                 case SERVER_ERROR_CODE:
-                    mViewInterface.onError(APIErrors.getErrorMessage(responseBody),IdentifyStatus.SERVER_ERROR.getCode());
+                    mViewInterface.onError(APIErrors.getErrorMessage(responseBody), DepartmentStatus.SERVER_ERROR.getCode());
                     break;
 
                 default:
-                    mViewInterface.onError(APIErrors.getErrorMessage(responseBody),IdentifyStatus.ERROR_CODE_100.getCode());
+                    mViewInterface.onError(APIErrors.getErrorMessage(responseBody), DepartmentStatus.ERROR_CODE_100.getCode());
             }
 
 

@@ -1,8 +1,8 @@
 package com.zkteco.silkiddemo.Utils;
 
-public enum IdentifyStatus {
-   IDENTIFY_STATUS_SUCCESS(1,701),
-   IDENTIFY_STATUS_ERROR(4,801),
+public enum EmployeeStatus {
+    EMPLOYEE_STATUS_SUCCESS(1,701),
+    EMPLOYEE_STATUS_ERROR(4,801),
     ERROR_CODE_100(8,100),
     ERROR_CODE_406(9,406),
     SERVER_ERROR(15,999);
@@ -10,7 +10,7 @@ public enum IdentifyStatus {
     private int key;
     private int code;
 
-   IdentifyStatus(int key, int code) {
+    EmployeeStatus(int key, int code) {
         this.key = key;
         this.code = code;
     }
@@ -31,8 +31,8 @@ public enum IdentifyStatus {
         this.code = code;
     }
 
-    public static IdentifyStatus getByCode(int code){
-        for(IdentifyStatus rs : IdentifyStatus.values()){
+    public static EmployeeStatus getByCode(int code){
+        for(EmployeeStatus rs : EmployeeStatus.values()){
             if(rs.code==code)return rs;
         }
 

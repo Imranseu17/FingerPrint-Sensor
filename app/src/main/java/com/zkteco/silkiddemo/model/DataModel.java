@@ -3,17 +3,20 @@ package com.zkteco.silkiddemo.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class IdentifyModel {
+import java.util.ArrayList;
+
+public class DataModel {
 
     @SerializedName("response")
     @Expose
     private Integer response;
     @SerializedName("message")
     @Expose
-    private Message message;
+    private ArrayList<Message> messages;
     @SerializedName("status")
     @Expose
     private String status;
+
 
     public Integer getResponse() {
         return response;
@@ -23,12 +26,12 @@ public class IdentifyModel {
         this.response = response;
     }
 
-    public Message getMessage() {
-        return message;
+    public ArrayList<Message> getMessages() {
+        return messages;
     }
 
-    public void setMessage(Message message) {
-        this.message = message;
+    public void setMessages(ArrayList<Message> messages) {
+        this.messages = messages;
     }
 
     public String getStatus() {
@@ -38,4 +41,6 @@ public class IdentifyModel {
     public void setStatus(String status) {
         this.status = status;
     }
+
+
 }

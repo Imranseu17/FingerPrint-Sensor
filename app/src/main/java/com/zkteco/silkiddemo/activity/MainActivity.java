@@ -12,7 +12,6 @@ import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.TextUtils;
 import android.text.format.Formatter;
 import android.util.Base64;
 import android.util.Log;
@@ -23,67 +22,68 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.databinding.DataBindingUtil;
 
-import com.google.android.gms.common.util.ArrayUtils;
-import com.zkteco.android.biometric.ZKSensorHelper;
+import com.google.android.material.snackbar.Snackbar;
+import com.jaredrummler.materialspinner.MaterialSpinner;
 import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
-import com.zkteco.android.biometric.core.device.usb.ZKUSBHOSTAPIService;
 import com.zkteco.android.biometric.core.utils.LogHelper;
 import com.zkteco.android.biometric.core.utils.ToolUtils;
 import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureListener;
 import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor;
 import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory;
 import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
-import com.zkteco.android.biometric.module.fingerprintreader.ZKIDFprService;
 import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
 import com.zkteco.silkiddemo.Presenter.AttendencePresenter;
-import com.zkteco.silkiddemo.Presenter.IdentifyPresenter;
+import com.zkteco.silkiddemo.Presenter.CompanyPresenter;
+import com.zkteco.silkiddemo.Presenter.DataPresenter;
+import com.zkteco.silkiddemo.Presenter.DepartmentPresenter;
+import com.zkteco.silkiddemo.Presenter.EmployeePresenter;
 import com.zkteco.silkiddemo.Presenter.InsertPresenter;
 import com.zkteco.silkiddemo.Presenter.TestPresenter;
 import com.zkteco.silkiddemo.R;
-import com.zkteco.silkiddemo.Utils.AttendenceStatus;
 import com.zkteco.silkiddemo.databinding.ActivityMainBinding;
 import com.zkteco.silkiddemo.model.AttendenceModel;
-import com.zkteco.silkiddemo.model.IdentifyModel;
+import com.zkteco.silkiddemo.model.CompanyModel;
+import com.zkteco.silkiddemo.model.CompanyMessage;
+import com.zkteco.silkiddemo.model.DataModel;
+import com.zkteco.silkiddemo.model.DepartmentMessage;
+import com.zkteco.silkiddemo.model.DepartmentModel;
+import com.zkteco.silkiddemo.model.EmployeeMessage;
+import com.zkteco.silkiddemo.model.EmployeeModel;
 import com.zkteco.silkiddemo.model.InsertModel;
+import com.zkteco.silkiddemo.service.VerificationService;
 import com.zkteco.silkiddemo.view.AttendenceView;
-import com.zkteco.silkiddemo.view.IdentifyView;
+import com.zkteco.silkiddemo.view.CompanyView;
+import com.zkteco.silkiddemo.view.DataView;
+import com.zkteco.silkiddemo.view.DepartmentView;
+import com.zkteco.silkiddemo.view.EmployeeView;
 import com.zkteco.silkiddemo.view.InsertView;
 import com.zkteco.silkiddemo.view.TestView;
-import com.zkteco.zkfinger.ZKFingerLibSetting;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
 import okhttp3.ResponseBody;
-import www.sanju.motiontoast.MotionToast;
-import www.sanju.motiontoast.MotionToastStyle;
 
-public class MainActivity extends AppCompatActivity implements InsertView , IdentifyView , AttendenceView , TestView {
+public class MainActivity extends AppCompatActivity implements
+        InsertView , DataView, AttendenceView , TestView , CompanyView , DepartmentView
+         , EmployeeView {
+
     private static final int VID = 6997;
     private static final int PID = 288;
     private TextView textView = null;
@@ -98,28 +98,35 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
     private FingerprintSensor fingerprintSensor = null;
 
     int threshold = 55;
-    String templateFromDB;
 
     private final String ACTION_USB_PERMISSION = "com.zkteco.silkiddemo.USB_PERMISSION";
 
     ActivityMainBinding mainBinding;
 
     InsertPresenter insertPresenter;
-    IdentifyPresenter identifyPresenter;
+    DataPresenter dataPresenter;
     AttendencePresenter attendencePresenter;
     TestPresenter testPresenter;
+    CompanyPresenter companyPresenter;
+    DepartmentPresenter departmentPresenter;
+    EmployeePresenter employeePresenter;
 
-    String dateTime;
     String strBase64;
 
     byte[] regTemp;
 
-    int emp_ID;
-
-
-    EditText edt_id,edt_name,edt_designation,edt_Note;
+    MaterialSpinner companySpinner,departmentSpinner,dataSpinner;
 
     String deviceId , ipAddress;
+
+    byte[] tmpBuffer;
+
+    VerificationService verificationService;
+    String name;
+
+    int empID;
+    String empName;
+
 
     private BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         @Override
@@ -149,6 +156,7 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         mainBinding = DataBindingUtil. setContentView(this, R.layout.activity_main);
+
       //  setSupportActionBar(mainBinding.toolbar);
 //
 //       mainBinding.fab.setOnClickListener(new View.OnClickListener() {
@@ -162,25 +170,29 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
         textView = (TextView)findViewById(R.id.textView);
         imageView = (ImageView)findViewById(R.id.imageView);
 
-        edt_id = findViewById(R.id.edt_id);
-        edt_name = findViewById(R.id.edt_name);
-        edt_designation = findViewById(R.id.edt_designation);
-        edt_Note = findViewById(R.id.edt_note);
+        companySpinner = (MaterialSpinner) findViewById(R.id.companySpinner);
+        departmentSpinner = (MaterialSpinner) findViewById(R.id.departmentSpinner);
+        dataSpinner = (MaterialSpinner) findViewById(R.id.dataSpinner);
 
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date = new Date();
-        dateTime =  formatter.format(date);
+
+
 
         insertPresenter = new InsertPresenter(this);
-        identifyPresenter = new IdentifyPresenter(this);
+        dataPresenter = new DataPresenter(this);
         attendencePresenter = new AttendencePresenter(this);
         testPresenter = new TestPresenter(this);
+        companyPresenter = new CompanyPresenter(this);
+        departmentPresenter = new DepartmentPresenter(this);
+        employeePresenter = new EmployeePresenter(this);
 
         Animation animFadeIn = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fade_in);
         imageView.startAnimation(animFadeIn);
 
         Animation animFadeOut = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fade_out);
         imageView.startAnimation(animFadeOut);
+
+        if(checkConnection())
+            companyPresenter.getCompanyCompany();
 
         InitDevice();
         startFingerprintSensor();
@@ -266,14 +278,6 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
     {
         try {
             if (bstart) return;
-            if(!validateEmployeeID())
-                return;
-            if(!validateEmployeeName())
-                return;
-            if(!validateEmployeeDesignation())
-                return;
-            if(!validateEmployeeNote())
-                return;
             fingerprintSensor.open(0);
             final FingerprintCaptureListener listener = new FingerprintCaptureListener() {
                 @Override
@@ -283,8 +287,7 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if(null != fpImage)
-                            {
+                            if(null != fpImage)                            {
                                 ToolUtils.outputHexString(fpImage);
                                 LogHelper.i("width=" + width + "\nHeight=" + height);
                                 Bitmap bitmapFp = ToolUtils.renderCroppedGreyScaleBitmap(fpImage, width, height);
@@ -321,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
                 @Override
                 public void extractOK(final byte[] fpTemplate)
                 {
-                    final byte[] tmpBuffer = fpTemplate;
+                  tmpBuffer = fpTemplate;
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -350,10 +353,7 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
                                         ZKFingerService.save(regTemp, "test" + uid++);
                                         System.arraycopy(regTemp, 0, lastRegTemp, 0, ret);
 
-                                        String eID = edt_id.getText().toString();
-                                        String eName = edt_name.getText().toString();
-                                        String eDesignation = edt_designation.getText().toString();
-                                        String eNote = edt_Note.getText().toString();
+
 
                                         deviceId = Settings.Secure.getString(getContentResolver(),Settings.Secure.ANDROID_ID);
 //                                        try {
@@ -368,28 +368,25 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
                                        strBase64 = "data:image/png;base64,/"+
                                                Base64.encodeToString(regTemp, 0, ret, Base64.NO_WRAP);
 
-                                        int empID = 0;
+
                                         int verifyID = 100;
 
-                                        try
-                                        {
-                                             empID = Integer.parseInt(eID);
-                                        }
-                                        catch (NumberFormatException e)
-                                        {
-                                            // handle the exception
-                                        }
-                                        
-                                     //  int verifyID = ZKFingerService.verifyId(tmpBuffer,"9465968548");
 
-//                                       if(checkConnection()){
-//                                           insertPresenter.postApi(empID,verifyID,
-//                                                   strBase64,Arrays.toString(regTemp),dateTime,deviceId,ipAddress);
-//                                       }
+                                        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                        Date date = new Date();
+                                      String  dateTime =  formatter.format(date);
 
-                                        if(checkConnection()){
-                                            testPresenter.insertApi(strBase64,Arrays.toString(regTemp));
-                                        }
+  //                                      Toast.makeText(MainActivity.this,"success Time: "+dateTime,Toast.LENGTH_LONG).show();
+ //                                       Toast.makeText(MainActivity.this,"empName: "+empName,Toast.LENGTH_LONG).show();
+
+                                       if(checkConnection()){
+                                           insertPresenter.postApi(empID,verifyID,
+                                                   strBase64, Arrays.toString(regTemp),dateTime,deviceId,ipAddress,empName);
+                                       }
+
+//                                        if(checkConnection()){
+//                                            testPresenter.insertApi(strBase64,Arrays.toString(regTemp));
+//                                        }
 
                                         textView.setText("Enroll success, uid:" + uid +
                                                 "count:" + ZKFingerService.count());
@@ -401,78 +398,99 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
                                     textView.setText("You need to press the " + (3 - enrollidx) + "time fingerprint");
                                 }
                             } else {
-                                byte[] bufids = new byte[256];
+ //                               byte[] bufids = new byte[256];
 
 
 //                             byte[] finbufids =    ByteBuffer.allocate(tmpBuffer.length+bufids.length)
 //                                        .put(tmpBuffer).put(bufids).array();
 
+                                if(checkConnection())
+                                    dataPresenter.getDataAPI();
 
-//                                if(checkConnection())
-//                                    identifyPresenter.identifyAPI(Arrays.toString(fpTemplate));
 
                          //   int check =     ZKFingerService.verify(tmpBuffer,bufids);
-
-                                int scores = ZKFingerService.verify(tmpBuffer,regTemp);
-
-                                Toast.makeText(MainActivity.this,"Scores: "+scores,Toast.LENGTH_LONG).show();
-
-                                int ret = ZKFingerService.identify(tmpBuffer,bufids, threshold, 1);
-
-                               String eID = edt_id.getText().toString();
-                               String eName = edt_name.getText().toString();
-                               String eDesignation = edt_designation.getText().toString();
-                               String eNote = edt_Note.getText().toString();
-
-
-                                if (ret > 0) {
-                                    String strRes[] = new String(bufids).trim().split("\t");
-//                                    String id = "ZKTeco_20_01";
-//                                    int verifyID = ZKFingerService.verifyId(bufids,id);
- //                                   String verifyID = Arrays.toString(strRes);
-                                   // String verifyID = convertStringArrayToString(strRes,",");
-                                    int verifyID = ZKFingerService.verifyId(tmpBuffer,strRes[0]);
-//                                    int verifyID;
-//                                    try {
-//                                       verifyID = Integer.parseInt(strRes[0]);
+//
+//                                if(response == 200){
+//                                    if(templateFromDB != null){
+//
+//                                        if (resultScore > 23) {
+//                                            String strRes[] = new String(bufids).trim().split("\t");
+//
+//                                      Toast.makeText(MainActivity.this,"Verify result: "+
+//                                              resultScore,Toast.LENGTH_LONG).show();
+////                                    String id = "ZKTeco_20_01";
+////                                    int verifyID = ZKFingerService.verifyId(bufids,id);
+//                                            //  String verifyID = Arrays.toString(strRes);
+//                                            // String verifyID = convertStringArrayToString(strRes,",");
+//                                            // int verifyID = ZKFingerService.verifyId(tmpBuffer,strRes[0]);
+////                                    int verifyID;
+////                                    try {
+////                                       verifyID = Integer.parseInt(strRes[0]);
+////                                    }
+////                                    catch (NumberFormatException e) {
+////                                        verifyID = 0;
+////                                    }
+//
+//                                            //  int id =   ZKFingerService.get(tmpBuffer,strRes[0]);
+////                                    insertPresenter.postApi
+////                                            (eID,verifyID,strBase64,Arrays.toString(tmpBuffer),dateTime);
+////                                            Intent intent = new Intent(MainActivity.this, WelcomeActivity.class);
+////                                    intent.putExtra("eID",eID);
+////                                    intent.putExtra("verifyID",verifyID);
+////                                    intent.putExtra("strBase64",strBase64);
+////                                    intent.putExtra("template",Arrays.toString(regTemp));
+////                                    intent.putExtra("dateTime",dateTime);
+//                                    startActivity(new Intent(MainActivity.this, WelcomeActivity.class));
+//                                            // textView.setText("identify succ, userid:" + strRes[0] + ", score:" + strRes[1]);
+//                                        } else {
+//                                            MotionToast.Companion.
+//                                                    darkColorToast(MainActivity.this,
+//                                                            "Error",
+//                                                            "Identify fail!",
+//                                                            MotionToastStyle.ERROR,
+//                                                            MotionToast.GRAVITY_BOTTOM,
+//                                                            MotionToast.LONG_DURATION,
+//                                                            ResourcesCompat.getFont(MainActivity.this,
+//                                                                    R.font.montserrat_regular));
+//                                            textView.setText("Identify fail");
+//                                        }
 //                                    }
-//                                    catch (NumberFormatException e) {
-//                                        verifyID = 0;
+//
+//                                    else {
+//                                        MotionToast.Companion.
+//                                                darkColorToast(MainActivity.this,
+//                                                        "Error",
+//                                                        "This fingerprint is not Enroll,Please Enroll this",
+//                                                        MotionToastStyle.ERROR,
+//                                                        MotionToast.GRAVITY_BOTTOM,
+//                                                        MotionToast.LONG_DURATION,
+//                                                        ResourcesCompat.getFont(MainActivity.this,
+//                                                                R.font.montserrat_regular));
+//                                        textView.setText("This fingerprint is not Enroll,Please Enroll this");
 //                                    }
+//                                }
+//
+//                                else {
+//                                    MotionToast.Companion.
+//                                            darkColorToast(MainActivity.this,
+//                                                    "Error",
+//                                                    "The fingerprint is not success",
+//                                                    MotionToastStyle.ERROR,
+//                                                    MotionToast.GRAVITY_BOTTOM,
+//                                                    MotionToast.LONG_DURATION,
+//                                                    ResourcesCompat.getFont(MainActivity.this,
+//                                                            R.font.montserrat_regular));
+//                                    textView.setText("The fingerprint is not success");
+//                                }
 
-                                   //  int id =   ZKFingerService.get(tmpBuffer,strRes[0]);
-//                                    insertPresenter.postApi
-//                                            (eID,verifyID,strBase64,Arrays.toString(tmpBuffer),dateTime);
 
-
-
-                                    Intent intent = new Intent(MainActivity.this, WelcomeActivity.class);
-//                                    intent.putExtra("eID",eID);
-//                                    intent.putExtra("verifyID",verifyID);
-//                                    intent.putExtra("strBase64",strBase64);
-//                                    intent.putExtra("template",Arrays.toString(regTemp));
-//                                    intent.putExtra("dateTime",dateTime);
-                                    startActivity(intent);
-                                   // textView.setText("identify succ, userid:" + strRes[0] + ", score:" + strRes[1]);
-                                } else {
-                                    MotionToast.Companion.
-                                            darkColorToast(MainActivity.this,
-                                                    "Error",
-                                                    "Identify fail!",
-                                            MotionToastStyle.ERROR,
-                                            MotionToast.GRAVITY_BOTTOM,
-                                            MotionToast.LONG_DURATION,
-                                            ResourcesCompat.getFont(MainActivity.this,
-                                                    R.font.montserrat_regular));
-                                    textView.setText("Identify fail");
-                                }
                              //   Base64 Template
-                                String strBase64T = Base64.encodeToString
-                                 (tmpBuffer, 0, fingerprintSensor.getLastTempLen(), Base64.NO_WRAP);
+//                                String strBase64T = Base64.encodeToString
+//                                 (tmpBuffer, 0, fingerprintSensor.getLastTempLen(), Base64.NO_WRAP);
 
-                                if(checkConnection()){
-                                    testPresenter.insertApi(strBase64T,Arrays.toString(fpTemplate));
-                                }
+//                                if(checkConnection()){
+//                                    testPresenter.insertApi(strBase64T,Arrays.toString(fpTemplate));
+//                                }
                             }
                         }
                     });
@@ -537,31 +555,41 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
     public void onSuccess(InsertModel insertModel) {
         try {
             Toast.makeText(MainActivity.this,insertModel.getMessage(),Toast.LENGTH_LONG).show();
-            Toast.makeText(MainActivity.this,"success",Toast.LENGTH_LONG).show();
+           // Toast.makeText(MainActivity.this,"success",Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void onSuccess(IdentifyModel identifyModel) {
-        try {
-            emp_ID = Integer.parseInt(identifyModel.getMessage().getEmp_id()) ;
-            templateFromDB = identifyModel.getMessage().getTemp();
+    public void onSuccess(DataModel dataModel) {
+        verificationService = new VerificationService(dataModel.getMessages(), MainActivity.this);
+        verificationService.messageReceived(tmpBuffer);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date();
+       String dateTime =  formatter.format(date);
+        if(verificationService.isVerified()){
+            //Toast.makeText(MainActivity.this,"success: " + verificationService.getEmpID(),Toast.LENGTH_LONG).show();
             if(checkConnection())
-                attendencePresenter.attendenceAPI(emp_ID,deviceId,ipAddress,dateTime);
-            Toast.makeText(MainActivity.this,identifyModel.getMessage().getEmp_id(),Toast.LENGTH_LONG).show();
-            Toast.makeText(MainActivity.this,"success",Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            e.printStackTrace();
+                name = verificationService.geteName();
+                attendencePresenter.attendenceAPI(verificationService.getEmpID(), deviceId, ipAddress, dateTime);
+        }else{
+            Toast.makeText(MainActivity.this,"unSuccessful",Toast.LENGTH_LONG).show();
         }
     }
 
     @Override
     public void onSuccess(AttendenceModel attendenceModel) {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM yyyy HH:mm:ss");
+        Date date = new Date();
+       String dateTime =  formatter.format(date);
         try {
+            Intent intent = new Intent(MainActivity.this,WelcomeActivity.class);
+            intent.putExtra("eName",name);
+            intent.putExtra("dateTime",dateTime);
+            startActivity(intent);
             Toast.makeText(MainActivity.this,attendenceModel.getMessage(),Toast.LENGTH_LONG).show();
-            Toast.makeText(MainActivity.this,"success",Toast.LENGTH_LONG).show();
+         //   Toast.makeText(MainActivity.this,"success Time: "+dateTime,Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -578,50 +606,96 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
     }
 
     @Override
+    public void onSuccess(CompanyModel companyModel) {
+        ArrayList<String> companyList = new ArrayList<>();
+        String companyName;
+        for (CompanyMessage companyMessage : companyModel.getMessage()){
+            companyName = companyMessage.getName();
+            companyList.add(companyName);
+        }
+        companySpinner.setItems(companyList);
+        if(checkConnection())
+            departmentPresenter.departmentapi(
+                    Integer.parseInt(companyModel.getMessage().get(companySpinner.getSelectedIndex()).getId()));
+        companySpinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
+
+            @Override public void onItemSelected(MaterialSpinner view, int position, long id, String item) {
+
+                if(checkConnection())
+                    try {
+                        departmentPresenter.departmentapi(
+                              Integer.parseInt(companyModel.getMessage().get(position).getId()));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+            }
+        });
+
+    }
+
+    @Override
+    public void onSuccess(DepartmentModel departmentModel) {
+        ArrayList<String> departmentList = new ArrayList<>();
+        String departmentName;
+        for (DepartmentMessage departmentMessage : departmentModel.getDepartmentMessages()){
+            departmentName = departmentMessage.getDep_name();
+            departmentList.add(departmentName);
+        }
+        departmentSpinner.setItems(departmentList);
+        if(checkConnection())
+            employeePresenter.employeeAPI(
+                    Integer.parseInt(departmentModel.getDepartmentMessages().get(departmentSpinner.getSelectedIndex()).getId()));
+        departmentSpinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
+            @Override public void onItemSelected(MaterialSpinner view, int position, long id, String item) {
+                if(checkConnection()){
+
+                    try {
+                        employeePresenter.employeeAPI(Integer.parseInt(
+                                departmentModel.getDepartmentMessages().get(position).getId()));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+            }
+            }
+        });
+    }
+
+    @Override
+    public void onSuccess(EmployeeModel employeeModel) {
+        ArrayList<String> employeeList = new ArrayList<>();
+        String employeeInfo;
+        for (EmployeeMessage employeeMessage:employeeModel.employeeMessageArrayList){
+            employeeInfo = employeeMessage.getName()+" (#ID: "+employeeMessage.getId()+")";
+            employeeList.add(employeeInfo);
+        }
+        dataSpinner.setItems(employeeList);
+        empID = Integer.parseInt(employeeModel.getEmployeeMessageArrayList()
+                .get(dataSpinner.getSelectedIndex()).getId()) ;
+        empName = employeeModel.getEmployeeMessageArrayList().get(dataSpinner.getSelectedIndex()).getName();
+        dataSpinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
+
+            @Override public void onItemSelected(MaterialSpinner view, int position, long id, String item) {
+                try {
+                    empID = Integer.parseInt(employeeModel.getEmployeeMessageArrayList().get(position).getId()) ;
+                    empName = employeeModel.getEmployeeMessageArrayList().get(position).getName();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+            }
+        });
+
+
+    }
+
+    @Override
     public void onError(String error, int code) {
         Toast.makeText(MainActivity.this,error,Toast.LENGTH_LONG).show();
     }
 
-    private boolean validateEmployeeID() {
-        String eID = edt_id.getText().toString().trim();
-        if (TextUtils.isEmpty(eID)) {
-            edt_id.setError("Employee ID is empty");
-            requestFocus(edt_id);
-            return false;
-        }
-        return true;
-    }
 
-    private boolean validateEmployeeName() {
-        String eName = edt_name.getText().toString().trim();
-        if (TextUtils.isEmpty(eName)) {
-            edt_name.setError("Employee Name is empty");
-            requestFocus(edt_name);
-            return false;
-        }
-        return true;
-    }
-
-    private boolean validateEmployeeDesignation() {
-        String eDesignation = edt_designation.getText().toString().trim();
-        if (TextUtils.isEmpty(eDesignation)) {
-            edt_designation.setError("Employee Designation is empty");
-            requestFocus(edt_designation);
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean validateEmployeeNote() {
-        String eNote = edt_Note.getText().toString().trim();
-        if (TextUtils.isEmpty(eNote)) {
-            edt_Note.setError("Employee Note is empty");
-            requestFocus(edt_Note);
-            return false;
-        }
-        return true;
-    }
 
     private void requestFocus(View view) {
         if (view.requestFocus()) {
@@ -666,6 +740,9 @@ public class MainActivity extends AppCompatActivity implements InsertView , Iden
 
         return  ip;
     }
+
+
+
 
 
 }

@@ -78,8 +78,7 @@
                 android:focusable="false"
                 android:enabled="false"
                 android:background="@drawable/verified_png"
-                android:id="@+id/button"
-                android:onClick="OnBnBegin" />
+                android:id="@+id/button" />
 
 
 

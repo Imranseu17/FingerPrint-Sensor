@@ -37,7 +37,7 @@ public class InsertPresenter {
 
     public void postApi(int eID, int eVerifyID,
                          String eBase64,String temp, String eDateTime,
-                          String deviceID , String ipAddress) {
+                          String deviceID , String ipAddress,String name) {
 
         Map<String, String> map = new HashMap<>();
         map.put("Content-Type", "application/json");
@@ -51,6 +51,7 @@ public class InsertPresenter {
         jsonObject.addProperty("eDateTime", eDateTime);
         jsonObject.addProperty("eDeviceID",deviceID);
         jsonObject.addProperty("eIP",ipAddress);
+        jsonObject.addProperty("eName",name);
 
 
         mApiClient.getAPI()

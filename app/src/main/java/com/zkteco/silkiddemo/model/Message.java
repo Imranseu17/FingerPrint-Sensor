@@ -8,7 +8,10 @@ public class Message {
     @SerializedName("emp_id")
     @Expose
     private String emp_id;
-    @SerializedName("temp")
+    @SerializedName("emp_name")
+    @Expose
+    private String name;
+    @SerializedName("fingerprint_template")
     @Expose
     private String temp;
 
@@ -26,5 +29,13 @@ public class Message {
 
     public void setTemp(String temp) {
         this.temp = temp;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

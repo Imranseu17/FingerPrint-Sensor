@@ -3,16 +3,21 @@ package com.zkteco.silkiddemo.activity;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 
+import com.mapzen.speakerbox.Speakerbox;
 import com.zkteco.silkiddemo.R;
 import com.zkteco.silkiddemo.databinding.ActivitySplashBinding;
+
+import java.util.Locale;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -31,6 +36,7 @@ public class SplashActivity extends AppCompatActivity {
         Animation animFadeIn = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.blink);
         splashBinding.imageView.startAnimation(animFadeIn);
 
+
         /* New Handler to start the Menu-Activity
          * and close this Splash-Screen after some seconds.*/
         new Handler().postDelayed(new Runnable(){
@@ -43,5 +49,6 @@ public class SplashActivity extends AppCompatActivity {
             }
         }, SPLASH_DISPLAY_LENGTH);
     }
+
 
 }

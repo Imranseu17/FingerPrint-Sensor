@@ -8,10 +8,7 @@
             type="com.zkteco.silkiddemo.activity.WelcomeActivity" />
     </data>
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fillViewport="true">
+
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,23 +18,45 @@
         android:gravity="center"
         tools:context=".activity.WelcomeActivity">
 
-        <com.airbnb.lottie.LottieAnimationView
-            android:id="@+id/animationView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            app:lottie_rawRes="@raw/welcome_animation"
-            app:lottie_autoPlay="true"
-            app:lottie_loop="true"/>
-
-<!--        <TextView-->
+<!--        <com.airbnb.lottie.LottieAnimationView-->
+<!--            android:id="@+id/animationView"-->
 <!--            android:layout_width="match_parent"-->
 <!--            android:layout_height="wrap_content"-->
-<!--            android:textSize="15dp"-->
-<!--            android:layout_margin="10dp"-->
-<!--            android:id="@+id/data"/>-->
+<!--            android:layout_gravity="center"-->
+<!--            app:lottie_rawRes="@raw/welcome_animation"-->
+<!--            app:lottie_autoPlay="true"-->
+<!--            app:lottie_loop="true"/>-->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorAccent"
+            android:gravity="center"
+            android:textSize="20dp"
+            android:layout_margin="10dp"
+            android:text="Welcome"/>
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorAccent"
+            android:gravity="center"
+            android:textSize="20dp"
+            android:layout_margin="10dp"
+            android:text="Imran"/>
+
+        <TextView
+            android:id="@+id/inTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorAccent"
+            android:gravity="center"
+            android:textSize="20dp"
+            android:layout_margin="10dp"
+            android:text="13 April 2015"/>
 
 
     </LinearLayout>
-    </ScrollView>
+
 </layout>

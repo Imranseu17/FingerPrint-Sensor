@@ -1,13 +1,14 @@
 package com.zkteco.silkiddemo.Presenter;
 
-import com.google.gson.JsonObject;
-import com.zkteco.silkiddemo.Utils.AttendenceStatus;
+import com.zkteco.silkiddemo.Utils.CompanyStatus;
 import com.zkteco.silkiddemo.Utils.DebugLog;
 import com.zkteco.silkiddemo.Utils.ErrorCode;
 import com.zkteco.silkiddemo.error.APIErrors;
-import com.zkteco.silkiddemo.model.AttendenceModel;
+import com.zkteco.silkiddemo.model.CompanyModel;
+import com.zkteco.silkiddemo.model.CompanyModel;
 import com.zkteco.silkiddemo.service.APIClient;
-import com.zkteco.silkiddemo.view.AttendenceView;
+import com.zkteco.silkiddemo.view.CompanyView;
+import com.zkteco.silkiddemo.view.CompanyView;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -20,11 +21,11 @@ import retrofit2.Callback;
 import retrofit2.HttpException;
 import retrofit2.Response;
 
-public class AttendencePresenter {
-    private AttendenceView mViewInterface;
+public class CompanyPresenter {
+    private CompanyView mViewInterface;
     private APIClient mApiClient;
 
-    public AttendencePresenter(AttendenceView view) {
+    public CompanyPresenter(CompanyView view) {
         this.mViewInterface = view;
 
         if (this.mApiClient == null) {
@@ -33,30 +34,26 @@ public class AttendencePresenter {
     }
 
 
-    public void attendenceAPI(int empID , String deviceID , String ipAddress , String dateTime ) {
+    public void getCompanyCompany() {
 
         Map<String, String> map = new HashMap<>();
         map.put("Content-Type", "application/json");
 
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("eID",empID);
-        jsonObject.addProperty("eDeviceID",deviceID);
-        jsonObject.addProperty("eIP",ipAddress);
-        jsonObject.addProperty("eDateTime",dateTime);
+
 
 
         mApiClient.getAPI()
-                .attendence(map,jsonObject)
-                .enqueue(new Callback<AttendenceModel>() {
+                .getCompany(map)
+                .enqueue(new Callback<CompanyModel>() {
                     @Override
-                    public void onResponse(Call<AttendenceModel> call, Response<AttendenceModel> response) {
+                    public void onResponse(Call<CompanyModel> call, Response<CompanyModel> response) {
 
                         DebugLog.e(String.valueOf(response.code()));
 
                         if (response.isSuccessful()) {
-                            AttendenceModel attendenceModel = response.body();
-                            if(attendenceModel != null){
-                                mViewInterface.onSuccess(attendenceModel);
+                            CompanyModel companyModel = response.body();
+                            if(companyModel != null){
+                                mViewInterface.onSuccess(companyModel);
                             }
                         } else getErrorMessage(response.code(), response.errorBody());
 
@@ -64,7 +61,7 @@ public class AttendencePresenter {
                     }
 
                     @Override
-                    public void onFailure(Call<AttendenceModel> call, Throwable e) {
+                    public void onFailure(Call<CompanyModel> call, Throwable e) {
                         e.printStackTrace();
                         if (e instanceof HttpException) {
                             int code = ((HttpException) e).response().code();
@@ -72,14 +69,14 @@ public class AttendencePresenter {
                             getErrorMessage(code, responseBody);
 
                         } else if (e instanceof SocketTimeoutException) {
-                            mViewInterface.onError("Server connection error", AttendenceStatus.Attendence_STATUS_ERROR.getCode());
+                            mViewInterface.onError("Server connection error", CompanyStatus.Company_STATUS_ERROR.getCode());
                         } else if (e instanceof IOException) {
                             if (e.getMessage() != null)
-                                mViewInterface.onError(e.getMessage(),AttendenceStatus.SERVER_ERROR.getCode());
+                                mViewInterface.onError(e.getMessage(), CompanyStatus.SERVER_ERROR.getCode());
                             else
-                                mViewInterface.onError("IO Exception",AttendenceStatus.SERVER_ERROR.getCode());
+                                mViewInterface.onError("IO Exception", CompanyStatus.SERVER_ERROR.getCode());
                         } else {
-                            mViewInterface.onError("Unknown exception: "+e.getMessage(),AttendenceStatus.Attendence_STATUS_ERROR.getCode());
+                            mViewInterface.onError("Unknown exception: "+e.getMessage(), CompanyStatus.Company_STATUS_ERROR.getCode());
                             e.printStackTrace();
                         }
                     }
@@ -93,21 +90,21 @@ public class AttendencePresenter {
         if (errorCode != null) {
             switch (errorCode) {
                 case ERRORCODE500:
-                    mViewInterface.onError(APIErrors.get500ErrorMessage(responseBody),AttendenceStatus.ERROR_CODE_100.getCode());
+                    mViewInterface.onError(APIErrors.get500ErrorMessage(responseBody), CompanyStatus.ERROR_CODE_100.getCode());
                     break;
                 case ERRORCODE400:
-                    mViewInterface.onError(APIErrors.get500ErrorMessage(responseBody),AttendenceStatus.ERROR_CODE_100.getCode());
+                    mViewInterface.onError(APIErrors.get500ErrorMessage(responseBody), CompanyStatus.ERROR_CODE_100.getCode());
                     break;
                 case ERRORCODE406:
-                    mViewInterface.onError(APIErrors.get406ErrorMessage(responseBody),AttendenceStatus.ERROR_CODE_406.getCode());
+                    mViewInterface.onError(APIErrors.get406ErrorMessage(responseBody), CompanyStatus.ERROR_CODE_406.getCode());
                     break;
 
                 case SERVER_ERROR_CODE:
-                    mViewInterface.onError(APIErrors.getErrorMessage(responseBody),AttendenceStatus.SERVER_ERROR.getCode());
+                    mViewInterface.onError(APIErrors.getErrorMessage(responseBody), CompanyStatus.SERVER_ERROR.getCode());
                     break;
 
                 default:
-                    mViewInterface.onError(APIErrors.getErrorMessage(responseBody),AttendenceStatus.ERROR_CODE_100.getCode());
+                    mViewInterface.onError(APIErrors.getErrorMessage(responseBody), CompanyStatus.ERROR_CODE_100.getCode());
             }
 
 

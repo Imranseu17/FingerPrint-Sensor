@@ -28,6 +28,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
 import com.zkteco.android.biometric.core.utils.LogHelper;
@@ -38,34 +40,31 @@ import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory;
 import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
 import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
 import com.zkteco.silkiddemo.Presenter.AttendencePresenter;
-import com.zkteco.silkiddemo.Presenter.IdentifyPresenter;
+import com.zkteco.silkiddemo.Presenter.DataPresenter;
 import com.zkteco.silkiddemo.R;
 import com.zkteco.silkiddemo.databinding.ActivityVerifyBinding;
 import com.zkteco.silkiddemo.model.AttendenceModel;
-import com.zkteco.silkiddemo.model.IdentifyModel;
+import com.zkteco.silkiddemo.model.DataModel;
+import com.zkteco.silkiddemo.model.Message;
+import com.zkteco.silkiddemo.service.VerificationService;
 import com.zkteco.silkiddemo.view.AttendenceView;
-import com.zkteco.silkiddemo.view.IdentifyView;
+import com.zkteco.silkiddemo.view.DataView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.ListIterator;
 import java.util.Map;
 
 import www.sanju.motiontoast.MotionToast;
 import www.sanju.motiontoast.MotionToastStyle;
 
-public class VerifyActivity extends AppCompatActivity  implements IdentifyView , AttendenceView {
+public class VerifyActivity extends AppCompatActivity  implements DataView, AttendenceView {
 
     private static final int VID = 6997;
     private static final int PID = 288;
@@ -80,7 +79,6 @@ public class VerifyActivity extends AppCompatActivity  implements IdentifyView ,
 
     private FingerprintSensor fingerprintSensor = null;
 
-    String dateTime;
 
     private final String ACTION_USB_PERMISSION = "com.zkteco.silkiddemo.USB_PERMISSION";
 
@@ -89,12 +87,14 @@ public class VerifyActivity extends AppCompatActivity  implements IdentifyView ,
 
     String strBase64;
 
-    IdentifyPresenter identifyPresenter;
+    DataPresenter dataPresenter;
     AttendencePresenter attendencePresenter;
 
-    byte[] regTemp;
+    byte[] tmpBuffer;
 
-    int emp_ID;
+    VerificationService verificationService;
+
+    String name;
 
 
 
@@ -136,15 +136,19 @@ public class VerifyActivity extends AppCompatActivity  implements IdentifyView ,
         Animation animFadeOut = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fade_out);
         imageView.startAnimation(animFadeOut);
 
-        identifyPresenter = new IdentifyPresenter(this);
+        dataPresenter = new DataPresenter(this);
         attendencePresenter = new AttendencePresenter(this);
 
-        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-        Date date = new Date();
-        dateTime =  formatter.format(date);
+
 
         InitDevice();
         startFingerprintSensor();
+        try {
+            OnBnBegin();
+        } catch (FingerprintException e) {
+            e.printStackTrace();
+        }
+
 
         verifyBinding.goEntry.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -258,7 +262,7 @@ public class VerifyActivity extends AppCompatActivity  implements IdentifyView ,
         }
     }
 
-    public void OnBnBegin(View view) throws FingerprintException
+    public void OnBnBegin() throws FingerprintException
     {
         try {
             if (bstart) return;
@@ -311,7 +315,8 @@ public class VerifyActivity extends AppCompatActivity  implements IdentifyView ,
                 @Override
                 public void extractOK(final byte[] fpTemplate)
                 {
-                    final byte[] tmpBuffer = fpTemplate;
+                     tmpBuffer = fpTemplate;
+
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -351,15 +356,43 @@ public class VerifyActivity extends AppCompatActivity  implements IdentifyView ,
                                     textView.setText("You need to press the " + (3 - enrollidx) + "time fingerprint");
                                 }
                             } else {
-                                if(checkConnection())
-                                    identifyPresenter.identifyAPI(Arrays.toString(regTemp));
 
-                                byte[] bufids = new byte[256];
-                                int ret = ZKFingerService.identify(tmpBuffer, bufids, threshold, 1);
-                                if (ret > 0) {
-                                    String strRes[] = new String(bufids).trim().split("\t");
-                                   // String verifyID = Arrays.toString(strRes);
-                                    int verifyID = ZKFingerService.verifyId(tmpBuffer,strRes[0]);
+                                if(checkConnection())
+                                    dataPresenter.getDataAPI();
+
+
+
+//                                if(resultScore > 0){
+//                                    if(checkConnection())
+//                                        attendencePresenter.attendenceAPI(emp_ID,deviceId,ipAddress,dateTime);
+//                                    startActivity(new Intent(VerifyActivity.this,WelcomeActivity.class));
+//                                    Toast.makeText(VerifyActivity.this,"result Score: "+resultScore,Toast.LENGTH_LONG).show();
+//                                }
+//                                else {
+//                                    MotionToast.Companion.
+//                                            darkColorToast(VerifyActivity.this,
+//                                                    "Error",
+//                                                    "Identify fail!",
+//                                                    MotionToastStyle.ERROR,
+//                                                    MotionToast.GRAVITY_BOTTOM,
+//                                                    MotionToast.LONG_DURATION,
+//                                                    ResourcesCompat.getFont(VerifyActivity.this,
+//                                                            R.font.montserrat_regular));
+//                                }
+
+//                                if(response == 200){
+//                                    if(templateFromDB != null){                                        //   byte[] temDB = templateFromDB.getBytes();
+
+
+
+//                                        if ( resultScore > 23) {
+//                                            String strRes[] = new String(bufids).trim().split("\t");
+//
+//                                            Toast.makeText(VerifyActivity.this,"Verify result"+
+//                                                    resultScore,Toast.LENGTH_LONG).show();
+
+                                            // String verifyID = Arrays.toString(strRes);
+                                            // int verifyID = ZKFingerService.verifyId(tmpBuffer,strRes[0]);
 //                                    int verifyID , userID ;
 //                                    try {
 //                                        verifyID = Integer.parseInt(strRes[0]);
@@ -369,17 +402,6 @@ public class VerifyActivity extends AppCompatActivity  implements IdentifyView ,
 //                                        verifyID = 0;
 //                                        userID = 0;
 //                                    }
-                                    int userID ;
-                                    try {
-                                        userID = Integer.parseInt(getIntent().getStringExtra("eID"));
-                                        Toast.makeText(VerifyActivity.this,
-                                                "userID: "+userID,Toast.LENGTH_LONG).show();
-                                    }
-                                    catch (NumberFormatException e) {
-                                        userID = 0;
-                                    }
-
-
 
 //                                    try {
 //                                        ipAddress = Inet4Address.getLocalHost().getHostAddress();
@@ -387,24 +409,50 @@ public class VerifyActivity extends AppCompatActivity  implements IdentifyView ,
 //                                        e.printStackTrace();
 //                                    }
 
+                                            // textView.setText("identify succ, userid:" + strRes[0] + ", score:" + strRes[1]);\
+
+//                                        } else {
+//                                            MotionToast.Companion.
+//                                                    darkColorToast(VerifyActivity.this,
+//                                                            "Error",
+//                                                            "Identify fail!",
+//                                                            MotionToastStyle.ERROR,
+//                                                            MotionToast.GRAVITY_BOTTOM,
+//                                                            MotionToast.LONG_DURATION,
+//                                                            ResourcesCompat.getFont(VerifyActivity.this,
+//                                                                    R.font.montserrat_regular));
+//                                            textView.setText("Identify fail");
+//                                        }
+//                                    }
+//
+//                                    else {
+//                                        MotionToast.Companion.
+//                                                darkColorToast(VerifyActivity.this,
+//                                                        "Error",
+//                                                        "This fingerprint is not Enroll,Please Enroll this",
+//                                                        MotionToastStyle.ERROR,
+//                                                        MotionToast.GRAVITY_BOTTOM,
+//                                                        MotionToast.LONG_DURATION,
+//                                                        ResourcesCompat.getFont(VerifyActivity.this,
+//                                                                R.font.montserrat_regular));
+//                                        textView.setText("This fingerprint is not Enroll,Please Enroll this");
+//                                    }
+//                                }else {
+//                                    MotionToast.Companion.
+//                                            darkColorToast(VerifyActivity.this,
+//                                                    "Error",
+//                                                    "The fingerprint is not success",
+//                                                    MotionToastStyle.ERROR,
+//                                                    MotionToast.GRAVITY_BOTTOM,
+//                                                    MotionToast.LONG_DURATION,
+//                                                    ResourcesCompat.getFont(VerifyActivity.this,
+//                                                            R.font.montserrat_regular));
+//                                    textView.setText("The fingerprint is not success");
+//                                }
 
 
 
-                                    startActivity(new Intent(VerifyActivity.this, WelcomeActivity.class));
-                                    // textView.setText("identify succ, userid:" + strRes[0] + ", score:" + strRes[1]);\
 
-                                } else {
-                                    MotionToast.Companion.
-                                            darkColorToast(VerifyActivity.this,
-                                                    "Error",
-                                                    "Identify fail!",
-                                                    MotionToastStyle.ERROR,
-                                                    MotionToast.GRAVITY_BOTTOM,
-                                                    MotionToast.LONG_DURATION,
-                                                    ResourcesCompat.getFont(VerifyActivity.this,
-                                                            R.font.montserrat_regular));
-                                    textView.setText("Identify fail");
-                                }
                                 //Base64 Template
                                 //String strBase64 = Base64.encodeToString(tmpBuffer, 0, fingerprintSensor.getLastTempLen(), Base64.NO_WRAP);
                             }
@@ -420,8 +468,7 @@ public class VerifyActivity extends AppCompatActivity  implements IdentifyView ,
             textView.setText("Start capture success");
         }catch (FingerprintException e)
         {
-            textView.setText("Begin capture fail.errorcode:"+ e.getErrorCode()
-                    + "err message:" + e.getMessage() + "inner code:" + e.getInternalErrorCode());
+            textView.setText("Please connect to ZKTeco Sensor with OTG Cable");
         }
     }
 
@@ -433,25 +480,38 @@ public class VerifyActivity extends AppCompatActivity  implements IdentifyView ,
     }
 
     @Override
-    public void onSuccess(IdentifyModel identifyModel) {
-        try {
-            emp_ID = Integer.parseInt(identifyModel.getMessage().getEmp_id()) ;
-            final String deviceId = Settings.Secure.getString(getContentResolver(),Settings.Secure.ANDROID_ID);
-            String ipAddress = ipv4Address();
+    public void onSuccess(DataModel dataModel) {
+
+        verificationService = new VerificationService(dataModel.getMessages(), VerifyActivity.this);
+        verificationService.messageReceived(tmpBuffer);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date();
+       String dateTime =  formatter.format(date);
+        if(verificationService.isVerified()){
+           // Toast.makeText(VerifyActivity.this,"success",Toast.LENGTH_LONG).show();
             if(checkConnection())
-                attendencePresenter.attendenceAPI(emp_ID,deviceId,ipAddress,dateTime);
-            Toast.makeText(VerifyActivity.this,identifyModel.getMessage().getEmp_id(),Toast.LENGTH_LONG).show();
-            Toast.makeText(VerifyActivity.this,"success",Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            e.printStackTrace();
+                name = verificationService.geteName();
+                attendencePresenter.attendenceAPI(verificationService.getEmpID(),
+                        Settings.Secure.getString(getContentResolver(),Settings.Secure.ANDROID_ID),
+                        ipv4Address(), dateTime);
+        }else{
+            Toast.makeText(VerifyActivity.this,"unSuccessful",Toast.LENGTH_LONG).show();
         }
+
     }
 
     @Override
     public void onSuccess(AttendenceModel attendenceModel) {
         try {
+            SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM yyyy HH:mm:ss");
+            Date date = new Date();
+            String dateTime =  formatter.format(date);
+            Intent intent = new Intent(VerifyActivity.this,WelcomeActivity.class);
+            intent.putExtra("eName",name);
+            intent.putExtra("dateTime",dateTime);
+            startActivity(intent);
             Toast.makeText(VerifyActivity.this,attendenceModel.getMessage(),Toast.LENGTH_LONG).show();
-            Toast.makeText(VerifyActivity.this,"success",Toast.LENGTH_LONG).show();
+           // Toast.makeText(VerifyActivity.this,"success Time: "+dateTime,Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -493,4 +553,6 @@ public class VerifyActivity extends AppCompatActivity  implements IdentifyView ,
 
         return  ip;
     }
+
+
 }

@@ -1,7 +1,6 @@
 package com.zkteco.silkiddemo.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.databinding.DataBindingUtil;
 
 import android.app.PendingIntent;
@@ -10,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
@@ -19,8 +20,6 @@ import android.provider.Settings;
 import android.text.format.Formatter;
 import android.util.Base64;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -28,9 +27,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParser;
-import com.mapzen.speakerbox.Speakerbox;
 import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
 import com.zkteco.android.biometric.core.utils.LogHelper;
@@ -40,16 +36,12 @@ import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor;
 import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory;
 import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
 import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
-import com.zkteco.silkiddemo.Presenter.AttendencePresenter;
-import com.zkteco.silkiddemo.Presenter.DataPresenter;
+import com.zkteco.silkiddemo.Presenter.InsertPresenter;
 import com.zkteco.silkiddemo.R;
-import com.zkteco.silkiddemo.databinding.ActivityVerifyBinding;
-import com.zkteco.silkiddemo.model.AttendenceModel;
-import com.zkteco.silkiddemo.model.DataModel;
-import com.zkteco.silkiddemo.model.Message;
+import com.zkteco.silkiddemo.databinding.ActivityFingerPrintBinding;
+import com.zkteco.silkiddemo.model.InsertModel;
 import com.zkteco.silkiddemo.service.VerificationService;
-import com.zkteco.silkiddemo.view.AttendenceView;
-import com.zkteco.silkiddemo.view.DataView;
+import com.zkteco.silkiddemo.view.InsertView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -59,14 +51,18 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.ListIterator;
 import java.util.Map;
 
-import www.sanju.motiontoast.MotionToast;
-import www.sanju.motiontoast.MotionToastStyle;
+public class FingerPrintActivity extends AppCompatActivity implements InsertView {
 
-public class VerifyActivity extends AppCompatActivity  implements DataView, AttendenceView {
-
+    ActivityFingerPrintBinding fingerPrintBinding;
+    InsertPresenter insertPresenter;
+    String strBase64;
+    byte[] regTemp;
+    String deviceId , ipAddress;
+    byte[] tmpBuffer;
+    int empID;
+    String empName;
     private static final int VID = 6997;
     private static final int PID = 288;
     private TextView textView = null;
@@ -77,26 +73,9 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
     private byte[][] regtemparray = new byte[3][2048];
     private int enrollidx = 0;
     private byte[] lastRegTemp = new byte[2048];
-
     private FingerprintSensor fingerprintSensor = null;
-
-
-    private final String ACTION_USB_PERMISSION = "com.zkteco.silkiddemo.USB_PERMISSION";
-
-    ActivityVerifyBinding verifyBinding;
     int threshold = 55;
-
-    String strBase64;
-
-    DataPresenter dataPresenter;
-    AttendencePresenter attendencePresenter;
-
-    byte[] tmpBuffer;
-
-    VerificationService verificationService;
-
-    String name;
-
+    private final String ACTION_USB_PERMISSION = "com.zkteco.silkiddemo.USB_PERMISSION";
 
     private BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         @Override
@@ -122,10 +101,12 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        verifyBinding = DataBindingUtil. setContentView(this, R.layout.activity_verify);
+        fingerPrintBinding = DataBindingUtil.setContentView(this, R.layout.activity_finger_print);
 
-        textView = verifyBinding.textView;
-        imageView = verifyBinding.imageView;
+        textView = fingerPrintBinding.textView;
+        imageView = fingerPrintBinding.imageView;
+
+        insertPresenter = new InsertPresenter(this);
 
         Animation animFadeIn = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fade_in);
         imageView.startAnimation(animFadeIn);
@@ -133,26 +114,14 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
         Animation animFadeOut = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fade_out);
         imageView.startAnimation(animFadeOut);
 
-        dataPresenter = new DataPresenter(this);
-        attendencePresenter = new AttendencePresenter(this);
-
-
-
         InitDevice();
         startFingerprintSensor();
+
         try {
             OnBnBegin();
         } catch (FingerprintException e) {
             e.printStackTrace();
         }
-
-
-        verifyBinding.goEntry.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                    startActivity(new Intent(VerifyActivity.this, MainActivity.class));
-            }
-        });
     }
 
     private void startFingerprintSensor() {
@@ -223,14 +192,11 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if(null != fpImage)
-                            {
+                            if(null != fpImage)                            {
                                 ToolUtils.outputHexString(fpImage);
                                 LogHelper.i("width=" + width + "\nHeight=" + height);
                                 Bitmap bitmapFp = ToolUtils.renderCroppedGreyScaleBitmap(fpImage, width, height);
                                 saveBitmap(bitmapFp);
-                                verifyBinding.animationView.setVisibility(View.GONE);
-                                verifyBinding.imageViewLayout.setVisibility(View.VISIBLE);
                                 imageView.setImageBitmap(bitmapFp);
                             }
                         }
@@ -262,8 +228,7 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
                 @Override
                 public void extractOK(final byte[] fpTemplate)
                 {
-                     tmpBuffer = fpTemplate;
-
+                    tmpBuffer = fpTemplate;
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -287,12 +252,34 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
                                 System.arraycopy(tmpBuffer, 0, regtemparray[enrollidx], 0, 2048);
                                 enrollidx++;
                                 if (enrollidx == 3) {
-                                    byte[] regTemp = new byte[2048];
+                                    regTemp = new byte[2048];
                                     if (0 < (ret = ZKFingerService.merge(regtemparray[0], regtemparray[1], regtemparray[2], regTemp))) {
                                         ZKFingerService.save(regTemp, "test" + uid++);
                                         System.arraycopy(regTemp, 0, lastRegTemp, 0, ret);
+
+
+
+                                        deviceId = Settings.Secure.getString(getContentResolver(),Settings.Secure.ANDROID_ID);
+                                        ipAddress = ipv4Address();
+
                                         //Base64 Template
-                                        strBase64 = Base64.encodeToString(regTemp, 0, ret, Base64.NO_WRAP);
+                                        strBase64 = "data:image/png;base64,/"+
+                                                Base64.encodeToString(regTemp, 0, ret, Base64.NO_WRAP);
+
+
+                                        int verifyID = 100;
+                                        empID = getIntent().getIntExtra("empID",0) ;
+                                        empName = getIntent().getStringExtra("empName");
+
+                                        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                        Date date = new Date();
+                                        String  dateTime =  formatter.format(date);
+
+                                        if(checkConnection()){
+                                            insertPresenter.postApi(empID,verifyID,
+                                                    strBase64, Arrays.toString(regTemp),dateTime,deviceId,ipAddress,empName);
+                                        }
+
                                         textView.setText("Enroll success, uid:" + uid +
                                                 "count:" + ZKFingerService.count());
                                     } else {
@@ -303,9 +290,6 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
                                     textView.setText("You need to press the " + (3 - enrollidx) + "time fingerprint");
                                 }
                             } else {
-
-                                if(checkConnection())
-                                    dataPresenter.getDataAPI();
 
                             }
                         }
@@ -324,69 +308,33 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
         }
     }
 
+    public void OnBnEnroll(View view) {
+        if (bstart) {
+            isRegister = true;
+            enrollidx = 0;
+            textView.setText("You need to press the 3 time fingerprint");
+        }
+        else
+        {
+            textView.setText("Please begin capture first");
+        }
+    }
+
+    @Override
+    public void onSuccess(InsertModel insertModel) {
+        Toast.makeText(FingerPrintActivity.this,insertModel.getMessage(),Toast.LENGTH_LONG).show();
+        startActivity(new Intent(FingerPrintActivity.this,VerifyActivity.class));
+    }
+
+    @Override
+    public void onError(String error, int code) {
+        Toast.makeText(FingerPrintActivity.this,error,Toast.LENGTH_LONG).show();
+    }
 
     private boolean checkConnection() {
 
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         return cm.getActiveNetworkInfo() != null;
-    }
-
-    @Override
-    public void onSuccess(DataModel dataModel) {
-        if(dataModel.getMessages() != null){
-            verificationService = new VerificationService(dataModel.getMessages(), VerifyActivity.this);
-            verificationService.messageReceived(tmpBuffer);
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            Date date = new Date();
-            String dateTime =  formatter.format(date);
-            if(verificationService.isVerified()){
-                if(checkConnection())
-                    name = verificationService.geteName();
-                attendencePresenter.attendenceAPI(verificationService.getEmpID(),
-                        Settings.Secure.getString(getContentResolver(),Settings.Secure.ANDROID_ID),
-                        ipv4Address(), dateTime);
-            }else{
-                MotionToast.Companion.darkColorToast(this,"Failed",
-                        "The Fingerprint is not Entry ! Please Enroll this",
-                        MotionToastStyle.ERROR,
-                        MotionToast.GRAVITY_BOTTOM,
-                        MotionToast.LONG_DURATION,
-                        ResourcesCompat.getFont(this,R.font.helvetica_regular));
-
-                Speakerbox speakerbox = new Speakerbox(getApplication());
-                speakerbox.play("Invalid FingerPrint");
-            }
-        }else {
-            MotionToast.Companion.darkColorToast(this,"Failed",
-                    "No Enrollment Fingerprint Found",
-                    MotionToastStyle.ERROR,
-                    MotionToast.GRAVITY_BOTTOM,
-                    MotionToast.LONG_DURATION,
-                    ResourcesCompat.getFont(this,R.font.helvetica_regular));
-        }
-
-
-    }
-
-    @Override
-    public void onSuccess(AttendenceModel attendenceModel) {
-        try {
-            SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM yyyy HH:mm:ss");
-            Date date = new Date();
-            String dateTime =  formatter.format(date);
-            Intent intent = new Intent(VerifyActivity.this,WelcomeActivity.class);
-            intent.putExtra("eName",name);
-            intent.putExtra("dateTime",dateTime);
-            startActivity(intent);
-            Toast.makeText(VerifyActivity.this,attendenceModel.getMessage(),Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onError(String error, int code) {
-        Toast.makeText(VerifyActivity.this,error,Toast.LENGTH_LONG).show();
     }
 
     private String ipv4Address(){

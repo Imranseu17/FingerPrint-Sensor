@@ -301,7 +301,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/work_outline/baseline_work_outline_24.xml" />
+                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/create/baseline_create_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -311,9 +311,10 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="2e86c1" />
+                            <entry key="autoMirrored" value="true" />
+                            <entry key="color" value="ffffff" />
                             <entry key="opacityPercent" value="90" />
-                            <entry key="outputName" value="ic_baseline_work_outline_24" />
+                            <entry key="outputName" value="ic_baseline_create_24" />
                             <entry key="sourceFile" value="C:\Users\sumon\Documents\ZkTecoSDK\ZKFinger SDK_Android\ZKFinger SDK For Android 2.1_20180130\sample\SILKIDDemo-zkfinger10" />
                           </map>
                         </option>

@@ -89,3 +89,10 @@
 -keepattributes *Annotation*
 
 -keep  class com.zkteco.silkiddemo.activity.**{*;}
+-keep  class com.zkteco.silkiddemo.error.**{*;}
+-keep  class com.zkteco.silkiddemo.model.**{*;}
+-keep  class com.zkteco.silkiddemo.Presenter.**{*;}
+-keep  class com.zkteco.silkiddemo.service.**{*;}
+-keep  class com.zkteco.silkiddemo.Utils.**{*;}
+-keep  class com.zkteco.silkiddemo.view.**{*;}
+

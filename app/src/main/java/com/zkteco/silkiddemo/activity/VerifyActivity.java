@@ -15,6 +15,7 @@ import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.text.format.Formatter;
 import android.util.Base64;
@@ -229,8 +230,6 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
                                 LogHelper.i("width=" + width + "\nHeight=" + height);
                                 Bitmap bitmapFp = ToolUtils.renderCroppedGreyScaleBitmap(fpImage, width, height);
                                 saveBitmap(bitmapFp);
-                                verifyBinding.animationView.setVisibility(View.GONE);
-                                verifyBinding.imageViewLayout.setVisibility(View.VISIBLE);
                                 imageView.setImageBitmap(bitmapFp);
                             }
                         }
@@ -333,52 +332,74 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
 
     @Override
     public void onSuccess(DataModel dataModel) {
-        if(dataModel.getMessages() != null){
-            verificationService = new VerificationService(dataModel.getMessages(), VerifyActivity.this);
-            verificationService.messageReceived(tmpBuffer);
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            Date date = new Date();
-            String dateTime =  formatter.format(date);
-            if(verificationService.isVerified()){
-                if(checkConnection())
-                    name = verificationService.geteName();
-                attendencePresenter.attendenceAPI(verificationService.getEmpID(),
-                        Settings.Secure.getString(getContentResolver(),Settings.Secure.ANDROID_ID),
-                        ipv4Address(), dateTime);
-            }else{
-                MotionToast.Companion.darkColorToast(this,"Failed",
-                        "The Fingerprint is not Entry ! Please Enroll this",
-                        MotionToastStyle.ERROR,
-                        MotionToast.GRAVITY_BOTTOM,
-                        MotionToast.LONG_DURATION,
-                        ResourcesCompat.getFont(this,R.font.helvetica_regular));
+                if(dataModel.getMessages() != null){
+                    verificationService = new VerificationService(dataModel.getMessages(), VerifyActivity.this);
+                    verificationService.messageReceived(tmpBuffer);
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    Date date = new Date();
+                    String dateTime =  formatter.format(date);
+                    if(verificationService.isVerified()){
+                                if (checkConnection())
+                                    name = verificationService.geteName();
+                                attendencePresenter.attendenceAPI(verificationService.getEmpID(),
+                                        Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID),
+                                        ipv4Address(), dateTime);
+                    }else{
+                        MotionToast.Companion.darkColorToast(VerifyActivity.this,"Failed",
+                                "The Fingerprint is not Entry ! Please Enroll this",
+                                MotionToastStyle.ERROR,
+                                MotionToast.GRAVITY_BOTTOM,
+                                MotionToast.LONG_DURATION,
+                                ResourcesCompat.getFont(VerifyActivity.this,R.font.helvetica_regular));
+                        verifyBinding.pressFingerPrint.setVisibility(View.VISIBLE);
+                        verifyBinding.goEntry.setVisibility(View.VISIBLE);
+                        verifyBinding.animation1.setVisibility(View.GONE);
+                        verifyBinding.animation2.setVisibility(View.GONE);
+                        verifyBinding.animation3.setVisibility(View.VISIBLE);
+                        verifyBinding.loadingAnimationView.setVisibility(View.GONE);
 
-                Speakerbox speakerbox = new Speakerbox(getApplication());
-                speakerbox.play("Invalid FingerPrint");
+                        new Handler().postDelayed(new Runnable(){
+                            @Override
+                            public void run() {
+                                verifyBinding.animation3.setVisibility(View.GONE);
+                                verifyBinding.animation1.setVisibility(View.VISIBLE);
+                            }
+                        }, 2000);
+
+                        Speakerbox speakerbox = new Speakerbox(getApplication());
+                        speakerbox.play("Invalid FingerPrint");
+                    }
+                }else {
+                    MotionToast.Companion.darkColorToast(VerifyActivity.this,"Failed",
+                            "No Enrollment Fingerprint Found",
+                            MotionToastStyle.ERROR,
+                            MotionToast.GRAVITY_BOTTOM,
+                            MotionToast.LONG_DURATION,
+                            ResourcesCompat.getFont(VerifyActivity.this,R.font.helvetica_regular));
+                }
             }
-        }else {
-            MotionToast.Companion.darkColorToast(this,"Failed",
-                    "No Enrollment Fingerprint Found",
-                    MotionToastStyle.ERROR,
-                    MotionToast.GRAVITY_BOTTOM,
-                    MotionToast.LONG_DURATION,
-                    ResourcesCompat.getFont(this,R.font.helvetica_regular));
-        }
-
-
-    }
-
     @Override
     public void onSuccess(AttendenceModel attendenceModel) {
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM yyyy HH:mm:ss");
             Date date = new Date();
             String dateTime =  formatter.format(date);
+            verifyBinding.pressFingerPrint.setText("");
+            verifyBinding.goEntry.setVisibility(View.GONE);
+            verifyBinding.animation1.setVisibility(View.GONE);
+            verifyBinding.animation2.setVisibility(View.VISIBLE);
+            verifyBinding.animation3.setVisibility(View.GONE);
+            verifyBinding.loadingAnimationView.setVisibility(View.VISIBLE);
+        new Handler().postDelayed(new Runnable(){
+    @Override
+    public void run() {
             Intent intent = new Intent(VerifyActivity.this,WelcomeActivity.class);
             intent.putExtra("eName",name);
             intent.putExtra("dateTime",dateTime);
             startActivity(intent);
-            Toast.makeText(VerifyActivity.this,attendenceModel.getMessage(),Toast.LENGTH_LONG).show();
+    }
+        }, 2000);
+          //  Toast.makeText(VerifyActivity.this,attendenceModel.getMessage(),Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
         }

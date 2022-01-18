@@ -2,14 +2,12 @@ package com.zkteco.silkiddemo.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
-
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
@@ -17,9 +15,13 @@ import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.format.Formatter;
+import android.text.style.BackgroundColorSpan;
 import android.util.Base64;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -27,6 +29,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.mapzen.speakerbox.Speakerbox;
+import com.xeoh.android.texthighlighter.TextHighlighter;
 import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
 import com.zkteco.android.biometric.core.utils.LogHelper;
@@ -287,7 +291,16 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
                                     }
                                     isRegister = false;
                                 } else {
-                                    textView.setText("You need to press the " + (3 - enrollidx) + "time fingerprint");
+                                    textView.setText(" You need to press the " + (3 - enrollidx) + " time fingerprint ");
+                                    textView.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
+                                    new TextHighlighter()
+                                            .setBackgroundColor(Color.parseColor("#FFFF00"))
+                                            .setForegroundColor(Color.RED)
+                                            .addTarget(textView)
+                                            .highlight(textView.getText().toString(), TextHighlighter.BASE_MATCHER);
+
+                                    Speakerbox speakerbox = new Speakerbox(getApplication());
+                                    speakerbox.play(" You need to press the " + (3 - enrollidx) + " time fingerprint ");
                                 }
                             } else {
 
@@ -305,6 +318,7 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
         }catch (FingerprintException e)
         {
             textView.setText("Please connect your mobile phone to ZKTeco Sensor with OTG Cable !");
+
         }
     }
 
@@ -345,6 +359,7 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
 
         return  ip;
     }
+
 
 
 }

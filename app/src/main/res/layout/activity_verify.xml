@@ -18,12 +18,30 @@
         android:background="@drawable/background"
         tools:showIn="@layout/activity_main">
 
+        <ImageView
+            android:layout_width="200dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/logo" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Please Press your finger in FingerPrint Scanner !"
+            android:textStyle="bold|italic"
+            android:layout_marginTop="20dp"
+            android:id="@+id/pressFingerPrint"
+            android:fontFamily="sans-serif-condensed-light"
+            android:textColor="@android:color/black"
+            android:textSize="17dp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Please Press your finger in FingerPrint Scanner !"
             android:textStyle="bold|italic"
             android:layout_margin="20dp"
+            android:visibility="gone"
             android:fontFamily="sans-serif-condensed-light"
             android:textColor="@android:color/black"
             android:textSize="17dp"
@@ -53,48 +71,76 @@
 
         </LinearLayout>
 
-        <com.airbnb.lottie.LottieAnimationView
-            android:id="@+id/animationView"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="400dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
-            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:layout_gravity="center">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/animation1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             app:lottie_rawRes="@raw/fingerprint_verify"
             app:lottie_autoPlay="true"
             app:lottie_loop="true"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:orientation="horizontal">
+            <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/animation2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                app:lottie_rawRes="@raw/fingerprint_verified"
+                app:lottie_autoPlay="true"
+                app:lottie_loop="true"/>
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:clickable="false"
-                android:focusable="false"
-                android:enabled="false"
-                android:background="@drawable/verified_png"
-                android:id="@+id/button" />
+            <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/animation3"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                app:lottie_rawRes="@raw/wrong_fingerprint"
+                app:lottie_autoPlay="true"
+                app:lottie_loop="true"/>
+
 
 
 
         </LinearLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/go_Entry"
-            android:textStyle="bold|italic"
-            android:textColor="@android:color/holo_blue_bright"
-            android:layout_marginTop="40dp"
-            android:fontFamily="sans-serif-condensed-light"
-            android:textSize="15dp"
-            android:id="@+id/goEntry" />
+            android:orientation="vertical"
+            android:layout_marginTop="60dp"
+            android:gravity="center">
+
+            <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/loadingAnimationView"
+                android:layout_width="match_parent"
+                android:layout_height="90dp"
+                android:visibility="gone"
+                app:lottie_rawRes="@raw/loading"
+                app:lottie_autoPlay="true"
+                app:lottie_loop="true"/>
+
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/go_Entry"
+                android:textStyle="bold|italic"
+                android:textColor="@android:color/holo_blue_bright"
+                android:fontFamily="sans-serif-condensed-light"
+                android:textSize="15dp"
+                android:id="@+id/goEntry" />
+
+        </LinearLayout>
+
+
+
+
 
     </LinearLayout>
 </layout>

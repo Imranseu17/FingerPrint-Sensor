@@ -1,86 +1,33 @@
 package com.zkteco.silkiddemo.activity;
 
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
+
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.text.format.Formatter;
-import android.util.Base64;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.databinding.DataBindingUtil;
-
-import com.google.android.material.snackbar.Snackbar;
 import com.jaredrummler.materialspinner.MaterialSpinner;
-import com.zkteco.android.biometric.core.device.ParameterHelper;
-import com.zkteco.android.biometric.core.device.TransportType;
-import com.zkteco.android.biometric.core.utils.LogHelper;
-import com.zkteco.android.biometric.core.utils.ToolUtils;
-import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureListener;
-import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor;
-import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory;
-import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
-import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
-import com.zkteco.silkiddemo.Presenter.AttendencePresenter;
 import com.zkteco.silkiddemo.Presenter.CompanyPresenter;
-import com.zkteco.silkiddemo.Presenter.DataPresenter;
 import com.zkteco.silkiddemo.Presenter.DepartmentPresenter;
 import com.zkteco.silkiddemo.Presenter.EmployeePresenter;
-import com.zkteco.silkiddemo.Presenter.InsertPresenter;
-import com.zkteco.silkiddemo.Presenter.TestPresenter;
 import com.zkteco.silkiddemo.R;
-import com.zkteco.silkiddemo.Utils.DebugLog;
 import com.zkteco.silkiddemo.databinding.ActivityMainBinding;
-import com.zkteco.silkiddemo.model.AttendenceModel;
 import com.zkteco.silkiddemo.model.CompanyModel;
 import com.zkteco.silkiddemo.model.CompanyMessage;
-import com.zkteco.silkiddemo.model.DataModel;
 import com.zkteco.silkiddemo.model.DepartmentMessage;
 import com.zkteco.silkiddemo.model.DepartmentModel;
 import com.zkteco.silkiddemo.model.EmployeeMessage;
 import com.zkteco.silkiddemo.model.EmployeeModel;
-import com.zkteco.silkiddemo.model.InsertModel;
-import com.zkteco.silkiddemo.service.VerificationService;
-import com.zkteco.silkiddemo.view.AttendenceView;
 import com.zkteco.silkiddemo.view.CompanyView;
-import com.zkteco.silkiddemo.view.DataView;
 import com.zkteco.silkiddemo.view.DepartmentView;
 import com.zkteco.silkiddemo.view.EmployeeView;
-import com.zkteco.silkiddemo.view.InsertView;
-import com.zkteco.silkiddemo.view.TestView;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import okhttp3.ResponseBody;
 
 public class MainActivity extends AppCompatActivity implements
          CompanyView , DepartmentView

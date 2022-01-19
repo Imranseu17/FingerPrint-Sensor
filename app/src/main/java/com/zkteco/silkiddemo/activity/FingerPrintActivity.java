@@ -242,7 +242,11 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
                                 if (ret > 0)
                                 {
                                     String strRes[] = new String(bufids).trim().split("\t");
-                                    textView.setText("The finger already enroll by " + strRes[0] + ",cancel enroll");
+                                    fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
+                                    fingerPrintBinding.messageInfo.
+                                            setMessage("The finger already enroll by " + strRes[0] + ",cancel enroll");
+                                    Speakerbox speakerbox = new Speakerbox(getApplication());
+                                    speakerbox.play("The finger already enroll by " + strRes[0] + ",cancel enroll");
                                     isRegister = false;
                                     enrollidx = 0;
                                     return;
@@ -250,7 +254,13 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
 
                                 if (enrollidx > 0 && ZKFingerService.verify(regtemparray[enrollidx-1], tmpBuffer) <= 0)
                                 {
-                                    textView.setText("Please press the same finger 3 times for the enrollment !");
+                                    fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
+
+                                    fingerPrintBinding.messageInfo.
+                                            setMessage("Please press the same finger 3 times for the enrollment !");
+
+                                    Speakerbox speakerbox = new Speakerbox(getApplication());
+                                    speakerbox.play("Please press the same finger 3 times for the enrollment !");
                                     return;
                                 }
                                 System.arraycopy(tmpBuffer, 0, regtemparray[enrollidx], 0, 2048);
@@ -283,21 +293,24 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
                                             insertPresenter.postApi(empID,verifyID,
                                                     strBase64, Arrays.toString(regTemp),dateTime,deviceId,ipAddress,empName);
                                         }
+                                        fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
+                                        fingerPrintBinding.messageInfo.
+                                                setMessage("Enroll success, uid:" + uid +
+                                                "count:" + ZKFingerService.count());
 
-                                        textView.setText("Enroll success, uid:" + uid +
+                                        Speakerbox speakerbox = new Speakerbox(getApplication());
+                                        speakerbox.play("Enroll success, uid:" + uid +
                                                 "count:" + ZKFingerService.count());
                                     } else {
-                                        textView.setText("Enroll fail");
+                                        fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
+                                        fingerPrintBinding.messageInfo.
+                                                setMessage("Enroll fail");
                                     }
                                     isRegister = false;
                                 } else {
-                                    textView.setText(" You need to press the " + (3 - enrollidx) + " time fingerprint ");
-                                    textView.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-                                    new TextHighlighter()
-                                            .setBackgroundColor(Color.parseColor("#FFFF00"))
-                                            .setForegroundColor(Color.RED)
-                                            .addTarget(textView)
-                                            .highlight(textView.getText().toString(), TextHighlighter.BASE_MATCHER);
+                                    fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
+                                    fingerPrintBinding.messageInfo.
+                                            setMessage(" You need to press the " + (3 - enrollidx) + " time fingerprint ");
 
                                     Speakerbox speakerbox = new Speakerbox(getApplication());
                                     speakerbox.play(" You need to press the " + (3 - enrollidx) + " time fingerprint ");
@@ -314,11 +327,11 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
             fingerprintSensor.setFingerprintCaptureListener(0, listener);
             fingerprintSensor.startCapture(0);
             bstart = true;
-            textView.setText("Start capture success !");
         }catch (FingerprintException e)
         {
-            textView.setText("Please connect your mobile phone to ZKTeco Sensor with OTG Cable !");
-
+            fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
+            fingerPrintBinding.messageInfo.
+                    setMessage("Please connect your mobile phone to ZKTeco Sensor with OTG Cable !");
         }
     }
 
@@ -326,11 +339,18 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
         if (bstart) {
             isRegister = true;
             enrollidx = 0;
-            textView.setText("You need to press the 3 time fingerprint");
+            fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
+
+            fingerPrintBinding.messageInfo.
+                    setMessage("You need to press the 3 time fingerprint");
+
+            Speakerbox speakerbox = new Speakerbox(getApplication());
+            speakerbox.play("You need to press the 3 time fingerprint");
         }
         else
         {
-            textView.setText("Please begin capture first");
+            fingerPrintBinding.messageInfo.
+                    setMessage("Please begin capture first");
         }
     }
 

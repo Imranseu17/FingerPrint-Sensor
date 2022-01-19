@@ -390,6 +390,8 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
             verifyBinding.animation2.setVisibility(View.VISIBLE);
             verifyBinding.animation3.setVisibility(View.GONE);
             verifyBinding.loadingAnimationView.setVisibility(View.VISIBLE);
+            Speakerbox speakerbox = new Speakerbox(getApplication());
+            speakerbox.play("FingerPrint Success Please Wait .....");
         new Handler().postDelayed(new Runnable(){
     @Override
     public void run() {

@@ -34,6 +34,16 @@
             android:fontFamily="sans-serif-condensed-light"
             android:textColor="@android:color/black"
             android:textSize="17dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="if you are not register,Please go to entry page!"
+            android:textStyle="bold|italic"
+            android:layout_marginTop="5dp"
+            android:id="@+id/entryText"
+            android:fontFamily="sans-serif-condensed-light"
+            android:textColor="@android:color/black"
+            android:textSize="17dp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -120,7 +130,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="90dp"
                 android:visibility="gone"
-                app:lottie_rawRes="@raw/loading"
+                app:lottie_rawRes="@raw/progress_bar"
                 app:lottie_autoPlay="true"
                 app:lottie_loop="true"/>
 

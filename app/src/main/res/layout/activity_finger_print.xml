@@ -35,15 +35,18 @@
             android:textSize="18dp"
             android:textStyle="bold|italic" />
 
-        <com.app.infideap.stylishwidget.view.MessageBox
+        <com.app.infideap.stylishwidget.view.AButton
             android:id="@+id/message_info"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="70dp"
+            style="@style/Button.Success"
             app:sw_boxBackground="@color/colorSuccess"
             app:sw_innerTopPadding="10dp"
-            app:sw_innerBottomPadding = "10dp"
-            app:sw_innerRightPadding = "10dp"
+            app:sw_innerBottomPadding ="10dp"
+            app:sw_innerRightPadding ="10dp"
             app:sw_innerLeftPadding = "10dp"
+            android:layout_margin="10dp"
+            android:textSize="16dp"
             android:visibility="gone" />
 
 
@@ -56,7 +59,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_marginTop="20dp"
-            android:layout_height="400dp"
+            android:layout_height="500dp"
             android:orientation="vertical">
 
             <ImageView

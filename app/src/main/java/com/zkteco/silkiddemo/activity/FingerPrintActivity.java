@@ -8,20 +8,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.Spannable;
-import android.text.SpannableString;
 import android.text.format.Formatter;
-import android.text.style.BackgroundColorSpan;
 import android.util.Base64;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -30,7 +25,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mapzen.speakerbox.Speakerbox;
-import com.xeoh.android.texthighlighter.TextHighlighter;
 import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
 import com.zkteco.android.biometric.core.utils.LogHelper;
@@ -44,7 +38,6 @@ import com.zkteco.silkiddemo.Presenter.InsertPresenter;
 import com.zkteco.silkiddemo.R;
 import com.zkteco.silkiddemo.databinding.ActivityFingerPrintBinding;
 import com.zkteco.silkiddemo.model.InsertModel;
-import com.zkteco.silkiddemo.service.VerificationService;
 import com.zkteco.silkiddemo.view.InsertView;
 
 import java.io.File;
@@ -244,7 +237,7 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
                                     String strRes[] = new String(bufids).trim().split("\t");
                                     fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
                                     fingerPrintBinding.messageInfo.
-                                            setMessage("The finger already enroll by " + strRes[0] + ",cancel enroll");
+                                            setText("The finger already enroll by " + strRes[0] + ",cancel enroll");
                                     Speakerbox speakerbox = new Speakerbox(getApplication());
                                     speakerbox.play("The finger already enroll by " + strRes[0] + ",cancel enroll");
                                     isRegister = false;
@@ -257,7 +250,7 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
                                     fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
 
                                     fingerPrintBinding.messageInfo.
-                                            setMessage("Please press the same finger 3 times for the enrollment !");
+                                            setText("Please press the same finger 3 times for the enrollment !");
 
                                     Speakerbox speakerbox = new Speakerbox(getApplication());
                                     speakerbox.play("Please press the same finger 3 times for the enrollment !");
@@ -295,7 +288,7 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
                                         }
                                         fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
                                         fingerPrintBinding.messageInfo.
-                                                setMessage("Enroll success, uid:" + uid +
+                                                setText("Enroll success, uid:" + uid +
                                                 "count:" + ZKFingerService.count());
 
                                         Speakerbox speakerbox = new Speakerbox(getApplication());
@@ -304,13 +297,13 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
                                     } else {
                                         fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
                                         fingerPrintBinding.messageInfo.
-                                                setMessage("Enroll fail");
+                                                setText("Enroll fail");
                                     }
                                     isRegister = false;
                                 } else {
                                     fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
                                     fingerPrintBinding.messageInfo.
-                                            setMessage(" You need to press the " + (3 - enrollidx) + " time fingerprint ");
+                                            setText(" You need to press the " + (3 - enrollidx) + " time fingerprint ");
 
                                     Speakerbox speakerbox = new Speakerbox(getApplication());
                                     speakerbox.play(" You need to press the " + (3 - enrollidx) + " time fingerprint ");
@@ -331,7 +324,7 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
         {
             fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
             fingerPrintBinding.messageInfo.
-                    setMessage("Please connect your mobile phone to ZKTeco Sensor with OTG Cable !");
+                    setText("Please connect your mobile phone to ZKTeco Sensor with OTG Cable !");
         }
     }
 
@@ -340,9 +333,8 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
             isRegister = true;
             enrollidx = 0;
             fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
-
             fingerPrintBinding.messageInfo.
-                    setMessage("You need to press the 3 time fingerprint");
+                    setText("You need to press the 3 time fingerprint");
 
             Speakerbox speakerbox = new Speakerbox(getApplication());
             speakerbox.play("You need to press the 3 time fingerprint");
@@ -350,7 +342,7 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
         else
         {
             fingerPrintBinding.messageInfo.
-                    setMessage("Please begin capture first");
+                    setText("Please begin capture first");
         }
     }
 

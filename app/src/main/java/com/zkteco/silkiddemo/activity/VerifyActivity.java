@@ -352,6 +352,7 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
                                 MotionToast.LONG_DURATION,
                                 ResourcesCompat.getFont(VerifyActivity.this,R.font.helvetica_regular));
                         verifyBinding.pressFingerPrint.setVisibility(View.VISIBLE);
+                        verifyBinding.entryText.setVisibility(View.VISIBLE);
                         verifyBinding.goEntry.setVisibility(View.VISIBLE);
                         verifyBinding.animation1.setVisibility(View.GONE);
                         verifyBinding.animation2.setVisibility(View.GONE);
@@ -385,6 +386,7 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
             Date date = new Date();
             String dateTime =  formatter.format(date);
             verifyBinding.pressFingerPrint.setText("");
+            verifyBinding.entryText.setText("");
             verifyBinding.goEntry.setVisibility(View.GONE);
             verifyBinding.animation1.setVisibility(View.GONE);
             verifyBinding.animation2.setVisibility(View.VISIBLE);
@@ -400,7 +402,7 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
             intent.putExtra("dateTime",dateTime);
             startActivity(intent);
     }
-        }, 2000);
+        }, 3000);
           //  Toast.makeText(VerifyActivity.this,attendenceModel.getMessage(),Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();

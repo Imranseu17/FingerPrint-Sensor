@@ -37,7 +37,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="if you are not register,Please go to entry page!"
+            android:text="if you are not registered,Please go to entry page!"
             android:textStyle="bold|italic"
             android:layout_marginTop="5dp"
             android:id="@+id/entryText"
@@ -128,7 +128,7 @@
             <com.airbnb.lottie.LottieAnimationView
                 android:id="@+id/loadingAnimationView"
                 android:layout_width="match_parent"
-                android:layout_height="90dp"
+                android:layout_height="70dp"
                 android:visibility="gone"
                 app:lottie_rawRes="@raw/progress_bar"
                 app:lottie_autoPlay="true"

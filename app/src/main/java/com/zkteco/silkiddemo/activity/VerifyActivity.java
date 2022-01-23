@@ -346,7 +346,7 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
                                         ipv4Address(), dateTime);
                     }else{
                         MotionToast.Companion.darkColorToast(VerifyActivity.this,"Failed",
-                                "The Fingerprint is not Entry ! Please Enroll this",
+                                "The Fingerprint is not registered ! Please Enroll this",
                                 MotionToastStyle.ERROR,
                                 MotionToast.GRAVITY_BOTTOM,
                                 MotionToast.LONG_DURATION,

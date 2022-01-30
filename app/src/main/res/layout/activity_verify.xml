@@ -41,6 +41,7 @@
             android:textStyle="bold|italic"
             android:layout_marginTop="5dp"
             android:id="@+id/entryText"
+            android:visibility="gone"
             android:fontFamily="sans-serif-condensed-light"
             android:textColor="@android:color/black"
             android:textSize="17dp" />
@@ -85,6 +86,7 @@
             android:layout_width="match_parent"
             android:layout_height="400dp"
             android:orientation="vertical"
+            android:layout_marginTop="30dp"
             android:layout_gravity="center">
 
         <com.airbnb.lottie.LottieAnimationView
@@ -148,6 +150,7 @@
                 android:layout_marginTop="20dp"
                 android:paddingEnd="10dp"
                 android:paddingRight="10dp"
+                android:visibility="gone"
                 android:background="@drawable/roundedbutton"
                 android:drawableEnd="@drawable/ic_baseline_east_24"
                 android:fontFamily="sans-serif-thin"

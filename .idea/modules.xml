@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/SILKIDDemo-zkfinger10.iml" filepath="$PROJECT_DIR$/SILKIDDemo-zkfinger10.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/SILKIDDemo-zkfinger10.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/SILKIDDemo-zkfinger10.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/FingerPrint-Sensor.iml" filepath="$PROJECT_DIR$/.idea/modules/FingerPrint-Sensor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/FingerPrint-Sensor.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/FingerPrint-Sensor.app.iml" />
     </modules>
   </component>
 </project>

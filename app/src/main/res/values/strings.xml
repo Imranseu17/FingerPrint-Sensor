@@ -7,4 +7,6 @@
     <string name="cancelText">Cancel</string>
 
     <string name="go_Entry"><u>If you are no Entry Please go to Enrollment Page !</u>.</string>
+    <string name="productID">1</string>
+    <string name="vendorID">1</string>
 </resources>

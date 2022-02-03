@@ -2,13 +2,19 @@ package com.zkteco.silkiddemo.activity;
 
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Spinner;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.databinding.DataBindingUtil;
@@ -57,20 +63,45 @@ public class MainActivity extends AppCompatActivity implements
         dataSpinner =  findViewById(R.id.dataSpinner);
         goNext = findViewById(R.id.goNext);
 
+        if(!checkConnection())
+            networkConnectionON();
+
         companyPresenter = new CompanyPresenter(this);
         departmentPresenter = new DepartmentPresenter(this);
         employeePresenter = new EmployeePresenter(this);
 
         if(checkConnection())
             companyPresenter.getCompanyCompany();
+        else
+            networkConnectionON();
 
       goNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this,FingerPrintActivity.class);
-                intent.putExtra("empID",empID);
-                intent.putExtra("empName",empName);
-                startActivity(intent);
+               if(companySpinner.getItems() != null && departmentSpinner.getItems() != null
+                       && dataSpinner.getItems() != null){
+                   Intent intent = new Intent(MainActivity.this,FingerPrintActivity.class);
+                   intent.putExtra("empID",empID);
+                   intent.putExtra("empName",empName);
+                   startActivity(intent);
+               }
+               else {
+                   AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                   alertDialogBuilder.setMessage("Please connect xampp server");
+                   alertDialogBuilder.setPositiveButton("OK",
+                           new DialogInterface.OnClickListener() {
+                               @Override
+                               public void onClick(DialogInterface arg0, int arg1) {
+                                   arg0.dismiss();
+                               }
+                           });
+
+
+                   AlertDialog alertDialog = alertDialogBuilder.create();
+                   alertDialog.show();
+
+               }
+
             }
         });
 
@@ -90,6 +121,8 @@ public class MainActivity extends AppCompatActivity implements
             if(checkConnection())
                 departmentPresenter.departmentapi(
                         Integer.parseInt(companyModel.getMessage().get(companySpinner.getSelectedIndex()).getId()));
+            else
+                networkConnectionON();
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -98,13 +131,16 @@ public class MainActivity extends AppCompatActivity implements
 
             @Override public void onItemSelected(MaterialSpinner view, int position, long id, String item) {
 
-                if(checkConnection())
+                if(checkConnection()){
                     try {
                         departmentPresenter.departmentapi(
-                              Integer.parseInt(companyModel.getMessage().get(position).getId()));
+                                Integer.parseInt(companyModel.getMessage().get(position).getId()));
                     }catch (Exception e){
                         e.printStackTrace();
                     }
+                }else {
+                    networkConnectionON();
+                }
 
             }
         });
@@ -124,6 +160,8 @@ public class MainActivity extends AppCompatActivity implements
             if(checkConnection())
                 employeePresenter.employeeAPI(
                         Integer.parseInt(departmentModel.getDepartmentMessages().get(departmentSpinner.getSelectedIndex()).getId()));
+            else
+                networkConnectionON();
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -138,7 +176,8 @@ public class MainActivity extends AppCompatActivity implements
                         e.printStackTrace();
                     }
 
-            }
+            }else
+                networkConnectionON();
             }
         });
     }
@@ -205,6 +244,46 @@ public class MainActivity extends AppCompatActivity implements
 
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         return cm.getActiveNetworkInfo() != null;
+    }
+
+    private void networkConnectionON(){
+        ConnectivityManager ConnectionManager=(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo=ConnectionManager.getActiveNetworkInfo();
+        if(networkInfo != null && networkInfo.isConnected()==true )
+        {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+            alertDialogBuilder.setMessage("Network connection available");
+            alertDialogBuilder.setPositiveButton("OK",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface arg0, int arg1) {
+                            arg0.dismiss();
+                        }
+                    });
+
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+        }
+
+        else
+        {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+            alertDialogBuilder.setMessage("Please connect network");
+            alertDialogBuilder.setPositiveButton("OK",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface arg0, int arg1) {
+                            startActivity(new Intent("android.settings.panel.action.INTERNET_CONNECTIVITY"));
+
+                        }
+                    });
+
+
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+
+        }
+
     }
 
 

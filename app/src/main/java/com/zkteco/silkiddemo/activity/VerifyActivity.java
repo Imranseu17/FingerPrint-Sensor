@@ -1,5 +1,6 @@
 package com.zkteco.silkiddemo.activity;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.databinding.DataBindingUtil;
@@ -7,12 +8,14 @@ import androidx.databinding.DataBindingUtil;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,8 +23,6 @@ import android.provider.Settings;
 import android.text.format.Formatter;
 import android.util.Base64;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -29,8 +30,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParser;
 import com.mapzen.speakerbox.Speakerbox;
 import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
@@ -47,7 +46,6 @@ import com.zkteco.silkiddemo.R;
 import com.zkteco.silkiddemo.databinding.ActivityVerifyBinding;
 import com.zkteco.silkiddemo.model.AttendenceModel;
 import com.zkteco.silkiddemo.model.DataModel;
-import com.zkteco.silkiddemo.model.Message;
 import com.zkteco.silkiddemo.service.VerificationService;
 import com.zkteco.silkiddemo.view.AttendenceView;
 import com.zkteco.silkiddemo.view.DataView;
@@ -57,10 +55,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.ListIterator;
 import java.util.Map;
 
 import www.sanju.motiontoast.MotionToast;
@@ -99,6 +95,7 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
     String name;
 
 
+
     private BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -110,6 +107,7 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false))
                     {
                         LogHelper.i("have permission!");
+
                     }
                     else
                     {
@@ -134,10 +132,14 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
         Animation animFadeOut = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fade_out);
         imageView.startAnimation(animFadeOut);
 
+        if(!checkConnection())
+            networkConnectionON();
+
+
+
+
         dataPresenter = new DataPresenter(this);
         attendencePresenter = new AttendencePresenter(this);
-
-
 
         InitDevice();
         startFingerprintSensor();
@@ -155,6 +157,8 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
             }
         });
     }
+
+
 
     private void startFingerprintSensor() {
         // Define output log level
@@ -305,6 +309,8 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
 
                                 if(checkConnection())
                                     dataPresenter.getDataAPI();
+                                else
+                                    networkConnectionON();
 
                             }
                         }
@@ -330,6 +336,45 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
         return cm.getActiveNetworkInfo() != null;
     }
 
+    private void networkConnectionON(){
+        ConnectivityManager ConnectionManager=(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo=ConnectionManager.getActiveNetworkInfo();
+        if(networkInfo != null && networkInfo.isConnected()==true )
+        {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(VerifyActivity.this);
+            alertDialogBuilder.setMessage("Network connection available");
+            alertDialogBuilder.setPositiveButton("OK",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface arg0, int arg1) {
+                          arg0.dismiss();
+                        }
+                    });
+
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+        }
+
+        else
+        {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(VerifyActivity.this);
+            alertDialogBuilder.setMessage("Please connect network");
+            alertDialogBuilder.setPositiveButton("OK",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface arg0, int arg1) {
+                            startActivity(new Intent("android.settings.panel.action.INTERNET_CONNECTIVITY"));
+
+                        }
+                    });
+
+
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+
+        }
+
+    }
     @Override
     public void onSuccess(DataModel dataModel) {
                 if(dataModel.getMessages() != null){
@@ -339,11 +384,15 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
                     Date date = new Date();
                     String dateTime =  formatter.format(date);
                     if(verificationService.isVerified()){
-                                if (checkConnection())
+                                if (checkConnection()){
                                     name = verificationService.geteName();
-                                attendencePresenter.attendenceAPI(verificationService.getEmpID(),
-                                        Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID),
-                                        ipv4Address(), dateTime);
+                                    attendencePresenter.attendenceAPI(verificationService.getEmpID(),
+                                            Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID),
+                                            ipv4Address(), dateTime);
+                                }else {
+                                    networkConnectionON();
+                                }
+
                     }else{
                         MotionToast.Companion.darkColorToast(VerifyActivity.this,"Failed",
                                 "The Fingerprint is not registered ! Please Enroll this",
@@ -422,6 +471,7 @@ public class VerifyActivity extends AppCompatActivity  implements DataView, Atte
 
         return  ip;
     }
+
 
 
 }

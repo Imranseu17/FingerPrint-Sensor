@@ -282,18 +282,29 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
                                         Date date = new Date();
                                         String  dateTime =  formatter.format(date);
 
-                                        if(checkConnection()){
-                                            insertPresenter.postApi(empID,verifyID,
-                                                    strBase64, Arrays.toString(regTemp),dateTime,deviceId,ipAddress,empName);
-                                        }
-                                        fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
-                                        fingerPrintBinding.messageInfo.
-                                                setText("Enroll success, uid:" + uid +
-                                                "count:" + ZKFingerService.count());
+                                        Toast.makeText(FingerPrintActivity.this,dateTime,Toast.LENGTH_LONG).show();
 
-                                        Speakerbox speakerbox = new Speakerbox(getApplication());
-                                        speakerbox.play("Enroll success, uid:" + uid +
-                                                "count:" + ZKFingerService.count());
+                                        try {
+
+                                            if(checkConnection()){
+                                                insertPresenter.postApi(empID,verifyID,
+                                                        strBase64, Arrays.toString(regTemp),dateTime,deviceId,ipAddress,empName);
+                                                fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
+                                                fingerPrintBinding.messageInfo.
+                                                        setText("Enroll success, uid:" + uid +
+                                                                "count:" + ZKFingerService.count());
+
+                                                Speakerbox speakerbox = new Speakerbox(getApplication());
+                                                speakerbox.play("Enroll success, uid:" + uid +
+                                                        "count:" + ZKFingerService.count());
+                                            }
+
+
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+
+
                                     } else {
                                         fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
                                         fingerPrintBinding.messageInfo.
@@ -341,6 +352,7 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
         }
         else
         {
+            fingerPrintBinding.messageInfo.setVisibility(View.VISIBLE);
             fingerPrintBinding.messageInfo.
                     setText("Please begin capture first");
         }

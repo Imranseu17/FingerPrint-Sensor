@@ -1,6 +1,7 @@
 package com.zkteco.silkiddemo.activity;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -166,6 +167,7 @@ public class MainActivity extends AppCompatActivity implements
             e.printStackTrace();
         }
         departmentSpinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
+            @SuppressLint("SuspiciousIndentation")
             @Override public void onItemSelected(MaterialSpinner view, int position, long id, String item) {
                 if(checkConnection()){
 

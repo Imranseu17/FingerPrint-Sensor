@@ -15,27 +15,9 @@
         android:layout_height="match_parent"
         android:background="@drawable/welcomepage"
         android:orientation="vertical"
+        android:gravity="bottom"
         tools:context=".activity.WelcomeActivity">
 
-<!--        <com.airbnb.lottie.LottieAnimationView-->
-<!--            android:id="@+id/animationView"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_gravity="center"-->
-<!--            app:lottie_rawRes="@raw/welcome_animation"-->
-<!--            app:lottie_autoPlay="true"-->
-<!--            app:lottie_loop="true"/>-->
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="#F0F3F4"
-            android:gravity="center"
-            android:fontFamily="sans-serif-condensed-light"
-            android:textStyle="bold|italic"
-            android:textSize="20dp"
-            android:layout_marginTop="160dp"
-            android:text="Welcome"/>
 
         <TextView
             android:id="@+id/name"
@@ -46,7 +28,9 @@
             android:fontFamily="sans-serif-condensed-light"
             android:textStyle="bold|italic"
             android:textSize="20dp"
-            android:layout_margin="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="-30dp"
             android:text="Imran"/>
 
         <TextView
@@ -57,6 +41,7 @@
             android:gravity="center"
             android:fontFamily="sans-serif-condensed-light"
             android:textStyle="bold|italic"
+            android:layout_marginBottom="50dp"
             android:textSize="20dp"
             android:layout_marginLeft="30dp"
             android:text="13 April 2015"/>

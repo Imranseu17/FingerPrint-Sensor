@@ -282,7 +282,7 @@ public class FingerPrintActivity extends AppCompatActivity implements InsertView
                                         Date date = new Date();
                                         String  dateTime =  formatter.format(date);
 
-                                        Toast.makeText(FingerPrintActivity.this,dateTime,Toast.LENGTH_LONG).show();
+                                //        Toast.makeText(FingerPrintActivity.this,dateTime,Toast.LENGTH_LONG).show();
 
                                         try {
 
